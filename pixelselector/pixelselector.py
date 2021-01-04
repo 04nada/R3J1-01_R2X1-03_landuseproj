@@ -28,8 +28,8 @@ class MapImage:
         validpixels = []
         
         for i,pixel in enumerate(self.imgarray1D):
-            isPixelWhite = (pixel == [0,0,0]).all()
-            # check all list elements for if pixel is exactly [0,0,0]
+            isPixelWhite = (pixel == [255,255,255]).all()
+            # check all list elements for if pixel is exactly [255,255,255]
             
             if not isPixelWhite:
                 validpixels.append((pixel, self.getXYFrom1Dpixel(i)))
