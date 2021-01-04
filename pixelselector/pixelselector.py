@@ -47,4 +47,7 @@ MetroManila.selectRandomPixels(25)
 print()
 
 
-print('--- Metro *** ---')
+print('--- Metro Iloilo ---')
+MetroIloilo = MapImage(11, 10, 'metroiloilo_pixelated.png')
+# MetroIloilo.show2DArray()
+MetroIloilo.selectRandomPixels(5)
