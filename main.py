@@ -1,4 +1,16 @@
 import tensorflow as tf
+import numpy as np
+
+img_HEIGHT = 480
+img_WIDTH = 480
+
+train_satlt_dir = './train_imgdata/satellite_480x480'
+train_truem_dir = './train_imgdata/truemask_480x480'
+FOLDS = 5
+
+test_satlt_dir = './test_imgdata/satellite_480x480'
+test_truem_dir = './test_imgdata/truemask_480x480'
+
 
 def buildCNN:
     pass
