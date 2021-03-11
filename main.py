@@ -1,17 +1,17 @@
 import tensorflow as tf
-import tensorflow_datasets as tfds
 
 import numpy as np
 import os
 import cv2
 
 import PIL
-from matplotlib import pyplot as plt
 
 #--- -----
 
 # display image/s using matplotlib.pyplot
 # https://www.tensorflow.org/tutorials/images/segmentation
+
+from matplotlib import pyplot as plt
 
 def display(display_list):
     plt.figure(figsize=(15, 15))
@@ -24,36 +24,36 @@ def display(display_list):
 
 #--- ----- Prerequisite functions for the CNN
     
-### create list of all images inside a folder URL + its subfolders
+### create list of all images inside a folder path + its subfolders
     
-def get_all_images(file_url):
-    images = []
+def get_all_images_rgb(file_path):
+    images_rgb = []
     
-    for roots,dirs,files in os.walk(file_url):
+    for roots,dirs,files in os.walk(file_path):
         for fn in files:
             # check each filename if it falls under any of the valid datatypes
             if fn.endswith('.jpg') or fn.endswith('.png'):
-                image_url = os.path.join(roots,fn)
-                image = cv2.imread(image_url)
+                image_path = os.path.join(roots,fn)
+                image = cv2.imread(image_path)
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                images.append(image)
+                images_rgb.append(image)
 
-    return images
+    return images_rgb
 
 #---
 
 ### True Mask to Land Use conversion (numerical)
 
-lookup_color_to_label = {
-    (97,64,31): 0,	    # agricultural - brown
-    (160,32,239): 1,	    # commercial - purple
-    (221,190,170): 2,       # industrial - beige
-    (237,0,0): 3,   	    # institutional - red
-    (45,137,86): 4,	    # recreational - green
-    (254,165,0): 5,	    # residential - yellow
-    (0,0,87): 6		    # transport - dark blue
+lookup_rgb_to_index = {
+    (97,64,31): 0,	    # agricultural - brown - #61401F
+    (160,32,239): 1,	    # commercial - purple - #A020EF
+    (221,190,170): 2,       # industrial - beige - #DDBEAA
+    (237,0,0): 3,   	    # institutional - red - #ED0000
+    (45,137,86): 4,	    # recreational - green - #2D8956
+    (254,165,0): 5,	    # residential - yellow - #FEA500
+    (0,0,87): 6		    # transport - dark blue - #000057
 
-    # (0,0,0): 0 = none
+    # (XX,XX,XX): 7 = not found/unclassified
 }
 
 def pixel_rgb_to_index(rgb_list):
@@ -61,15 +61,22 @@ def pixel_rgb_to_index(rgb_list):
     # the tuple is then processed in the lookup dictionary
     #       to get a single number for the actual classification
     
-    return lookup_color_to_label.get(tuple(rgb_list), len(lookup_color_to_label))
+    return lookup_rgb_to_index.get(tuple(rgb_list), len(lookup_rgb_to_index))
 
 def image_rgb_to_index(rgb_image):
-    # for each pixel in image, convert?
-    # a nested loop approach may be terribly slow
+    # converts a HEIGHTxWIDTHx3 (in this case 480x480) tensor into
+    #       a HEIGHTxWIDTH 2D list
+    index_image = []
 
-    # todo: maybe find a more efficient way to convert [480x480x3] tensor
-    #       from an RGB image, into a [480x480] with just the classifications
-    pass
+    for row_of_pixels in rgb_image:
+        current_row = []
+        
+        for pixel in row_of_pixels:
+            current_row.append(pixel_rgb_to_index(pixel))
+
+        index_image.append(current_row)            
+
+    return index_image
 
 #---
 
@@ -87,7 +94,7 @@ def load_image_train(datapoint):
 
     #augment_data(input_image, input_mask)
 
-    #input_image, input_mask = normalize(input_image, input_mask)
+    input_image, input_mask = normalize(input_image, input_mask)
 
     return input_image, input_mask
 
@@ -99,14 +106,14 @@ def load_image_test(datapoint):
     input_image = tf.image.resize(src_image, (img_HEIGHT, img_WIDTH))
     input_mask = tf.image.resize(src_mask, (img_HEIGHT, img_WIDTH))
 
-    #input_image, input_mask = normalize(input_image, input_mask)
+    input_image, input_mask = normalize(input_image, input_mask)
 
     return input_image, input_mask
 
 def normalize(image, mask):
     # divides the RGB values of the image by 255
     # changes the range of values in the tensor from 0-255 into 0-1
-    image = tf.case(image, tf.float32) / 255.0
+    image = tf.cast(image, tf.float32) / 255.0
 
     return image, mask
 
@@ -148,8 +155,8 @@ EPOCHS = 727                                # filler number, just has to be more
 train_images_DIR = os.path.join('train_imgdata', 'satellite_4800x4800')
 train_truemasks_DIR = os.path.join('train_imgdata', 'truemask_480x480')
 
-train_images = get_all_images(train_images_DIR)
-train_truemasks_color = get_all_images(train_truemasks_DIR)
+train_images = get_all_images_rgb(train_images_DIR)
+train_truemasks_color = get_all_images_rgb(train_truemasks_DIR)
 train_truemasks_index = []
 
 train_samples = list(zip(train_images, train_images))
@@ -161,11 +168,8 @@ train_samples = list(zip(train_images, train_images))
     # todo: remember to set to (train_images, train_truemasks_index) eventually
 
 
-# see above, image_rgb_to_index()
-##for row in train_truemasks_color[0]:
-##    for column in row:
-##        print(column)
-##        #column = lookup_color_to_label.get(column, 7)
+print(image_rgb_to_index(train_truemasks_color[1]))
+
 
 #---
 
@@ -174,32 +178,35 @@ train_samples = list(zip(train_images, train_images))
 test_images_DIR = os.path.join('test_imgdata', 'satellite_480x480')
 test_truemasks_DIR = os.path.join('test_imgdata', 'truemask_480x480')
 
-test_images = get_all_images(test_images_DIR)
-test_truemasks_color = get_all_images(test_truemasks_DIR)
+test_images = get_all_images_rgb(test_images_DIR)
+test_truemasks_color = get_all_images_rgb(test_truemasks_DIR)
 test_truemasks_index = []
 
 test_samples = list(zip(test_images, test_images))
     # (image, mask) tuple x 500
 
-    # todo: remember to set to (test_images, test_truemasks_index) eventually
-
+    # same prayers as above with the Training/Validation Set
+# todo: remember to set to (test_images, test_truemasks_index) eventually
+    
 #---
 
 ### sample segmentation dataset from tensorflow
 
-dataset, info = tfds.load('oxford_iiit_pet:3.*.*', with_info=True)
-
-train = dataset['train'].map(load_image_train, num_parallel_calls=tf.data.AUTOTUNE)
-s = train.take(1)
-
-for sample in s:
-    print(sample[1].numpy())
-    print(sample[1][240][240])      # pet = 1
-    print(sample[1][0][0])          # background = 2
-    print(sample[1][200][100])      # border = 3
-
-    display([sample[0], sample[1]])
-    pass
+##import tensorflow_datasets as tfds
+##
+##dataset, info = tfds.load('oxford_iiit_pet:3.*.*', with_info=True)
+##
+##train = dataset['train'].map(load_image_train, num_parallel_calls=tf.data.AUTOTUNE)
+##s = train.take(1)
+##
+##for sample in s:
+##    print(sample[1].numpy())
+##    print(sample[1][240][240])      # pet = 1
+##    print(sample[1][0][0])          # background = 2
+##    print(sample[1][200][100])      # border = 3
+##
+##    display([sample[0], sample[1]])
+##    pass
 
 #---
 
