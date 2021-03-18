@@ -31,24 +31,32 @@ lookup_rgb_to_index = {
 
 ### model interation parameters
 
-TRAIN_SIZE = 2500                                   
-FOLDS = 5
-BATCH_SIZE = 64                                     # power of 2
-STEPS_PER_EPOCH = -(-TRAIN_SIZE // BATCH_SIZE)      # ceiling division
+SEED = 727                                      # consistent randomization from a set seed
 
-EPOCHS = 727                                        # filler number, just has to be more than enough to overfit before reaching the final epoch
+TRAIN_SIZE = 2500                               
+FOLDS = 5                                       
+BATCH_SIZE = 32                                 # power of 2 for optimized CPU/GPU usage
+STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE      # floor division
 
-TEST_SIZE = 500
+TEST_SIZE = 500                                 
+
+EPOCHS = 1000                                   # filler number, just has to be more than enough to overfit before reaching the final epoch
 
 #---
 
-### model implementation
+### model implementation parameters
 
 ACTIVATION = 'relu'
+
 OPTIMIZER = 'sgd'                                           # Stochastic Gradient Descent
 LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparce Categorical Cross-Entropy
+EVALUATION_METRICS = [
+    tf.keras.metrics.MeanIoU()
+]
 
 #--- ----- CNN Implementation
+
+tf.random.set_seed(SEED)
 
 ### Training + Validation Sets
 
@@ -68,33 +76,39 @@ train_dataset = list(zip(train_images, train_images))
     # todo: remember to set to (train_images, train_truemasks_index) eventually
 
 kf = KFold(n_splits=FOLDS, shuffle=True)
-train_dataset_folds = kf.n_splits
+#train_dataset_folds = kf.split(train_dataset)
 
 list_100 = [i for i in range(100)]
-list_100_folds = kf.n_splits(list_100)
+list_100_folds = list(kf.split(list_100))
 
 for f in range(FOLDS):
-    current_trainset = list_100_folds[0]
-    current_valset = list_100_folds[1]
+    current_trainset = list_100_folds[f][0]
+    current_valset = list_100_folds[f][1]
 
     print(current_valset)
-    
-    for e in range(EPOCHS):
-        #build
-        pass
 
-    ##    model = Sequential()
-    ##    model.add(
-    ##
-    ##    model.compile(
-    ##        optimizer='sgd',                                        # stochastic gradient descent
-    ##        loss=tf.keras.losses.SparseCategoricalCrossentropy(),   # sparse categorical cross-entropy
-    ##        metrics=[
-    ##            tf.keras.metrics.Accuracy(),
-    ##            tf.keras.metrics.Precision(),
-    ##            tf.keras.metrics.Recall()
-    ##        ]
-    ##    )
+    # only do training augmentation here, so it will happen FOLDSx total
+    # in order to augment training data but not the validation data, per fold
+    # https://stats.stackexchange.com/questions/482787/how-to-do-data-augmentation-and-cross-validation-at-the-same-time
+
+##    model = Sequential()
+##    
+##    model.add(idk
+    # todo: model.add() a lot of shtuff
+    
+##    model.fit(
+##        current_trainset
+##        batch_size = BATCH_SIZE
+##        epochs=1
+##        validation_data = current_valset
+##            
+##    model.compile(
+##        optimizer=OPTIMIZER,
+##        loss=LOSS,
+##        metrics=METRICS
+##    )
+
+    # todo: figure out how to combine results per fold
 #---
 
 ### Test Set
@@ -148,7 +162,10 @@ def buildCNN(dataset):
 
 # ---
 
-##base_model = tf.keras.applications.MobileNetV2(input_shape=[128, 128, 3], include_top=False)
+##base_model = tf.keras.applications.MobileNetV2(
+##    input_shape=[128, 128, 3],
+##    include_top=False
+##)
 ##
 ### Use the activations of these layers
 ##layer_names = [
