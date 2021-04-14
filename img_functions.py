@@ -7,7 +7,7 @@ import tensorflow as tf
 
 from matplotlib import pyplot as plt
 
-def display_images(display_list: list):
+def display_images(display_list:list):
     plt.figure(figsize=(15, 15))
 
     for i in range(len(display_list)):
@@ -27,7 +27,7 @@ def print_image(image: list):
 import os
 import cv2
 
-def get_all_image_names(file_path: str):
+def get_all_image_names(file_path:str):
     image_names = []
     
     for roots,dirs,files in os.walk(file_path):
@@ -41,7 +41,7 @@ def get_all_image_names(file_path: str):
 
     return images_rgb
 
-def get_all_images_rgb(file_path: str):
+def get_all_images_rgb(file_path:str):
     images_rgb = []
     
     for roots,dirs,files in os.walk(file_path):
@@ -59,15 +59,15 @@ def get_all_images_rgb(file_path: str):
 
 ### convert True Mask to Land Use (numerical)
 
-def pixel_rgb_to_index(rgb_list: list, lookup_table: dict):
+def pixel_rgb_to_index(rgb_list:list, lookup_table:dict):
     # converts a 3x1 list [R, G, B] into a 3x1 tuple (R, G, B)
     # the tuple is then processed in the lookup dictionary
     #       to get a single number for the actual classification
     
     return lookup_table.get(tuple(rgb_list), len(lookup_table))
 
-def image_rgb_to_index(rgb_image: list, lookup_table: dict):
-    # converts a HEIGHTxWIDTHx3 (in this case 480x480) tensor into
+def image_rgb_to_index(rgb_image:list, lookup_table:dict):
+    # converts a HEIGHTxWIDTHx3 (in this case 20x20) tensor into
     #       a HEIGHTxWIDTH 2D list
     index_image = []
 
@@ -81,6 +81,107 @@ def image_rgb_to_index(rgb_image: list, lookup_table: dict):
 
     return index_image
 
+#---
+
+### convert image into grid of subdivided images
+
+small_sample = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
+
+large_sample = []
+for i in range(1000):
+    large_sample.append([i for i in range(1000)])
+
+# todo: move this function to a standalone file/folder for dividing images
+def gridify_image(image:list, grid_HEIGHT:int, grid_WIDTH:int, is_last_row_bigger=False, is_last_column_bigger=False):
+    # divides image into grid by given height and width
+    # last two parameters determine if last row/column will be bigger or smaller,
+    #       if the grid lengths do not divide the image lengths evenly
+
+    image_HEIGHT = len(image)
+    image_WIDTH = len(image[0])
+
+    if is_last_row_bigger:
+        # floor division
+        NUM_ROWS = len(image)//grid_HEIGHT
+    else:
+        # ceiling division
+        NUM_ROWS = -(-len(image)//grid_HEIGHT)
+
+    if is_last_column_bigger:
+        # floor division
+        NUM_COLUMNS = len(image)//grid_WIDTH
+    else:
+        # ceiling division
+        NUM_COLUMNS = -(-len(image)//grid_WIDTH)
+
+    # ---
+
+    gridified_image = []
+
+    print("GRID COLUMNS: " + str(NUM_COLUMNS))
+    print("GRID ROWS: " + str(NUM_ROWS))
+
+    # O(n^4) nested lists end me now
+    for gr in range(NUM_ROWS):
+        grid_row = []
+
+        for gc in range(NUM_COLUMNS):
+            subimage = []
+
+            # compute subimage height based on row number and
+            #       if the last row is bigger or smaller than the rest
+            if gr < NUM_ROWS-1:
+                # subimage uses standard grid height for every row except the last
+                subimage_HEIGHT = grid_HEIGHT
+            else:
+                if image_HEIGHT % grid_HEIGHT == 0:
+                    # if the grid height evenly divides image height
+                    #       then use that standard grid height for the last row anyway
+                    subimage_HEIGHT = grid_HEIGHT
+                else:
+                    if is_last_row_bigger:
+                        subimage_HEIGHT = (image_HEIGHT % grid_HEIGHT) + grid_HEIGHT
+                    else:
+                        subimage_HEIGHT = image_HEIGHT % grid_HEIGHT
+
+            print("(" + str(gr) + "," + str(gc) + ")")
+            print("h:" + str(subimage_HEIGHT))
+        
+            for ir in range(subimage_HEIGHT):
+                subimage_row = []
+
+                # compute subimage width based on column number and
+                #       if the last row is bigger or smaller than the rest
+                if gc < NUM_COLUMNS-1:
+                    # subimage uses standard grid width for every column except the last
+                    subimage_WIDTH = grid_WIDTH
+                else:
+                    if image_WIDTH % grid_WIDTH == 0:
+                        # if the grid width evenly divides image width
+                        #       then use that standard grid width for the last column anyway
+                        subimage_WIDTH = grid_WIDTH
+                    else:
+                        if is_last_column_bigger:
+                            subimage_WIDTH = (image_WIDTH % grid_WIDTH) + grid_WIDTH
+                            print("B")
+                        else:
+                            subimage_WIDTH = image_WIDTH % grid_WIDTH
+                        
+                print("w:" + str(subimage_WIDTH))
+                
+                for ic in range(subimage_WIDTH):
+                    subimage_pixel = image[gr*grid_HEIGHT + ir][gc*grid_WIDTH + ic]
+                    
+                    subimage_row.append(subimage_pixel)
+
+                subimage.append(subimage_row)
+                
+            grid_row.append(subimage)
+
+        gridified_image.append(grid_row)
+
+    return gridified_image
+    
 #---
 
 ### compile images and masks to fit with CNN
@@ -129,7 +230,7 @@ def normalize(image: list, mask: list):
 ##        rotate the image by a random degree
 ##
 
-def augment_data(image, mask):
+def augment_data(image: list, mask: list):
     if tf.random.uniform(()) > 0.5:
         input_image = tf.image.flip_left_right(image)
         input_mask = tf.image.flip_left_right(mask)
