@@ -12,6 +12,9 @@ import cv2
 
 ### image parameters
 
+img_COLORMAP_HEIGHT = 20
+img_COLORMAP_WIDTH = 20
+
 img_HEIGHT = 480
 img_WIDTH = 480
 
@@ -23,8 +26,6 @@ lookup_rgb_to_index = {
     (45,137,86): 4,	    # recreational - green - #2D8956
     (254,165,0): 5,	    # residential - yellow - #FEA500
     (0,0,87): 6		    # transport - dark blue - #000057
-
-    # (XX,XX,XX): 7 = not found/unclassified
 }
 
 #---
@@ -58,10 +59,11 @@ EVALUATION_METRICS = [
 
 tf.random.set_seed(SEED)
 
+
 ### Training + Validation Sets
 
-train_images_DIR = os.path.join('train_imgdata', 'satellite_4800x4800')
-train_truemasks_DIR = os.path.join('train_imgdata', 'truemask_480x480')
+train_images_DIR = os.path.join('train_imgdata', 'satellite_4800x4800_sortbyname')
+train_truemasks_DIR = os.path.join('train_imgdata', 'trueclass_240x240_sortbyclass')
 
 train_images = img_funcs.get_all_images_rgb(train_images_DIR)
 train_truemasks_color = img_funcs.get_all_images_rgb(train_truemasks_DIR)
@@ -76,10 +78,13 @@ train_dataset = list(zip(train_images, train_images))
     # todo: remember to set to (train_images, train_truemasks_index) eventually
 
 kf = KFold(n_splits=FOLDS, shuffle=True)
-#train_dataset_folds = kf.split(train_dataset)
+#train_dataset_folds = list(kf.split(train_dataset))
 
 list_100 = [i for i in range(100)]
 list_100_folds = list(kf.split(list_100))
+
+
+### CNN Training
 
 for f in range(FOLDS):
     current_trainset = list_100_folds[f][0]
@@ -127,9 +132,6 @@ test_dataset = list(zip(test_images, test_images))
     # todo: remember to set to (test_images, test_truemasks_index) eventually
 
 #---
-
-def buildCNN(dataset):
-    pass
 
 ##define buildCNN:
 ##    //relu will be used as the activation function for all the layers
