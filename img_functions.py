@@ -90,103 +90,12 @@ small_sample = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
 large_sample = []
 for i in range(1000):
     large_sample.append([i for i in range(1000)])
-
-# todo: move this function to a standalone file/folder for dividing images
-def gridify_image(image:list, grid_HEIGHT:int, grid_WIDTH:int, is_last_row_bigger=False, is_last_column_bigger=False):
-    # divides image into grid by given height and width
-    # last two parameters determine if last row/column will be bigger or smaller,
-    #       if the grid lengths do not divide the image lengths evenly
-
-    image_HEIGHT = len(image)
-    image_WIDTH = len(image[0])
-
-    if is_last_row_bigger:
-        # floor division
-        NUM_ROWS = len(image)//grid_HEIGHT
-    else:
-        # ceiling division
-        NUM_ROWS = -(-len(image)//grid_HEIGHT)
-
-    if is_last_column_bigger:
-        # floor division
-        NUM_COLUMNS = len(image)//grid_WIDTH
-    else:
-        # ceiling division
-        NUM_COLUMNS = -(-len(image)//grid_WIDTH)
-
-    # ---
-
-    gridified_image = []
-
-    print("GRID COLUMNS: " + str(NUM_COLUMNS))
-    print("GRID ROWS: " + str(NUM_ROWS))
-
-    # O(n^4) nested lists end me now
-    for gr in range(NUM_ROWS):
-        grid_row = []
-
-        for gc in range(NUM_COLUMNS):
-            subimage = []
-
-            # compute subimage height based on row number and
-            #       if the last row is bigger or smaller than the rest
-            if gr < NUM_ROWS-1:
-                # subimage uses standard grid height for every row except the last
-                subimage_HEIGHT = grid_HEIGHT
-            else:
-                if image_HEIGHT % grid_HEIGHT == 0:
-                    # if the grid height evenly divides image height
-                    #       then use that standard grid height for the last row anyway
-                    subimage_HEIGHT = grid_HEIGHT
-                else:
-                    if is_last_row_bigger:
-                        subimage_HEIGHT = (image_HEIGHT % grid_HEIGHT) + grid_HEIGHT
-                    else:
-                        subimage_HEIGHT = image_HEIGHT % grid_HEIGHT
-
-            print("(" + str(gr) + "," + str(gc) + ")")
-            print("h:" + str(subimage_HEIGHT))
-        
-            for ir in range(subimage_HEIGHT):
-                subimage_row = []
-
-                # compute subimage width based on column number and
-                #       if the last row is bigger or smaller than the rest
-                if gc < NUM_COLUMNS-1:
-                    # subimage uses standard grid width for every column except the last
-                    subimage_WIDTH = grid_WIDTH
-                else:
-                    if image_WIDTH % grid_WIDTH == 0:
-                        # if the grid width evenly divides image width
-                        #       then use that standard grid width for the last column anyway
-                        subimage_WIDTH = grid_WIDTH
-                    else:
-                        if is_last_column_bigger:
-                            subimage_WIDTH = (image_WIDTH % grid_WIDTH) + grid_WIDTH
-                            print("B")
-                        else:
-                            subimage_WIDTH = image_WIDTH % grid_WIDTH
-                        
-                print("w:" + str(subimage_WIDTH))
-                
-                for ic in range(subimage_WIDTH):
-                    subimage_pixel = image[gr*grid_HEIGHT + ir][gc*grid_WIDTH + ic]
-                    
-                    subimage_row.append(subimage_pixel)
-
-                subimage.append(subimage_row)
-                
-            grid_row.append(subimage)
-
-        gridified_image.append(grid_row)
-
-    return gridified_image
     
 #---
 
 ### compile images and masks to fit with CNN
 
-def load_image_train(datapoint: tuple):
+def load_image_train(datapoint:tuple):
     # datapoint is just some iterable with both an image and a segmentation mask
     # examples from tensorflow use iterable classes for these
     # datapoint is usually a tuple as (image, mask)
@@ -202,7 +111,7 @@ def load_image_train(datapoint: tuple):
 
     return input_image, input_mask
 
-def load_image_test(datapoint: tuple):
+def load_image_test(datapoint:tuple):
     # see above re: datapoints
     
     src_image = datapoint['image']
@@ -214,7 +123,7 @@ def load_image_test(datapoint: tuple):
 
     return input_image, input_mask
 
-def normalize(image: list, mask: list):
+def normalize(image:list, mask:list):
     # divides the RGB values of the image by 255
     # changes the range of values in the tensor from 0-255 into 0-1
     image = tf.cast(image, tf.float32) / 255.0
@@ -230,7 +139,7 @@ def normalize(image: list, mask: list):
 ##        rotate the image by a random degree
 ##
 
-def augment_data(image: list, mask: list):
+def augment_data(image:list, mask:list):
     if tf.random.uniform(()) > 0.5:
         input_image = tf.image.flip_left_right(image)
         input_mask = tf.image.flip_left_right(mask)
