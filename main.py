@@ -28,6 +28,16 @@ lookup_rgb_to_index = {
     (0,0,87): 6		    # transport - dark blue - #000057
 }
 
+label_names = [
+    'agricultural',
+    'commercial',
+    'industrial',
+    'institutional',
+    'recreational',
+    'residential',
+    'transport'
+]
+
 #---
 
 ### model interation parameters
@@ -63,7 +73,7 @@ tf.random.set_seed(SEED)
 ### Training + Validation Sets
 
 train_images_DIR = os.path.join('train_imgdata', 'satellite_4800x4800_sortbyname')
-train_truemasks_DIR = os.path.join('train_imgdata', 'trueclass_240x240_sortbyclass')
+train_trueclasses_DIR = os.path.join('train_imgdata', 'trueclass_240x240_sortbyclass')
 
 train_images = img_funcs.get_all_images_rgb(train_images_DIR)
 train_truemasks_color = img_funcs.get_all_images_rgb(train_truemasks_DIR)
