@@ -13,8 +13,8 @@ import shutil
 small_sample = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
 
 large_sample = []
-for i in range(1000):
-    large_sample.append([i*1000+j for j in range(1000)])
+for i in range(3000):
+    large_sample.append([i*3000+j for j in range(1000)])
 
 # ---
 
@@ -29,11 +29,11 @@ def generate_grid_image_files(src_image_path:str, grid_HEIGHT:int, grid_WIDTH:in
     # create empty folder with same name as src_image, on the same level
     subimage_directory = os.path.join(src_image_directory, src_image_filename)
     
-    if os.path.exists(subimage_dirname):
+    if os.path.exists(subimage_directory):
         # if folder already exists, delete it
         shutil.rmtree(subimage_directory)
         
-    os.mkdir(subimage_dirname)
+    os.mkdir(subimage_directory)
 
     # ---
 
