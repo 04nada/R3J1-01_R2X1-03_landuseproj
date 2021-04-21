@@ -10,18 +10,38 @@ img_COLORMAP_WIDTH = 20
 img_HEIGHT = 240
 img_WIDTH = 240
 
-lookup_rgb_to_index = {
+lookup_rgb_to_index_full = {
     (97,64,31): 0,	    # agricultural - brown - #61401F
     (160,32,239): 1,	    # commercial - purple - #A020EF
-    (221,190,170): 2,       # industrial - beige - #DDBEAA
-    (237,0,0): 3,   	    # institutional - red - #ED0000
-    (45,137,86): 4,	    # recreational - green - #2D8956
-    (254,165,0): 5,	    # residential - yellow - #FEA500
-    (0,0,87): 6		    # transport - dark blue - #000057
+    (0,0,254): 2,           # harbor_seawater - blue - #0000FE
+    (221,190,170): 3,       # industrial - beige - #DDBEAA
+    (237,0,0): 4,   	    # institutional - red - #ED0000
+    (45,137,86): 5,	    # recreational - green - #2D8956
+    (254,165,0): 6,	    # residential - yellow - #FEA500
+    (0,0,87): 7	            # transport - dark blue - #000057
 }
 
-label_names = [
+lookup_rgb_to_index_actual = {
+    (160,32,239): 0,	    # commercial - purple - #A020EF
+    (221,190,170): 1,       # industrial - beige - #DDBEAA
+    (237,0,0): 2,   	    # institutional - red - #ED0000
+    (45,137,86): 3,	    # recreational - green - #2D8956
+    (254,165,0): 4,	    # residential - yellow - #FEA500
+    (0,0,87): 5		    # transport - dark blue - #000057
+}
+
+label_names_full = [
     'agricultural',
+    'commercial',
+    'harbor_seawater',
+    'industrial',
+    'institutional',
+    'recreational',
+    'residential',
+    'transport'
+]
+
+label_names_actual = [
     'commercial',
     'industrial',
     'institutional',
