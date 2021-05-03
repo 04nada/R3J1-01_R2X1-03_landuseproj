@@ -1,84 +1,117 @@
+import main_params as mp
 import img_functions as img_funcs
 
 import tensorflow as tf
 from sklearn.model_selection import KFold
+import random
 import numpy as np
 import PIL
 
-import os
+from pathlib import Path
 import cv2
 
 #--- ----- CNN Implementation
 
-tf.random.set_seed(SEED)
+### Controlled Randomization with a given seed
+
+tf.random.set_seed(mp.SEED)
+np.random.seed(mp.SEED)
+random.seed(mp.SEED)
 
 
 ### Training + Validation Sets
 
-train_images_DIR = os.path.join('train_imgdata', 'satellite_4800x4800_sortbyname')
-train_trueclasses_DIR = os.path.join('train_imgdata', 'trueclass_240x240_sortbyclass')
+# get training directory wrt current working directory
+train_dataset_directory = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sortbyclass_full'
 
-train_images = img_funcs.get_all_images_rgb(train_images_DIR)
-train_truemasks_color = img_funcs.get_all_images_rgb(train_truemasks_DIR)
-train_truemasks_index = []
+# create datapoints from dataset directory and label_name list
+train_datapoints = img_funcs.create_datapoints_from_directory(
+    train_dataset_directory.__str__(),
+    mp.label_names_full
+)
+random.shuffle(train_datapoints)
 
-train_dataset = list(zip(train_images, train_images))
-    # (image, mask) tuple x 2500
-
-    # pray that get_all_files() preserves the image order when applied
-    #   between train_images and train_truemasks independently
-
-    # todo: remember to set to (train_images, train_truemasks_index) eventually
-
-kf = KFold(n_splits=FOLDS, shuffle=True)
-#train_dataset_folds = list(kf.split(train_dataset))
-
-list_100 = [i for i in range(100)]
-list_100_folds = list(kf.split(list_100))
+# create k folds of training-validation splits
+# KFold follows the numpy seed
+kf = KFold(n_splits=mp.FOLDS, shuffle=True)
+train_datapoints_folds = list(kf.split(train_datapoints))
 
 
 ### CNN Training
 
-for f in range(FOLDS):
-    current_trainset = list_100_folds[f][0]
-    current_valset = list_100_folds[f][1]
-
-    print(current_valset)
+print('')
+for f in range(mp.FOLDS):
+    print('=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
+    
+    current_trainset_points = train_datapoints_folds[f][0]
+    current_valset_points = train_datapoints_folds[f][1]
 
     # only do training augmentation here, so it will happen FOLDSx total
     # in order to augment training data but not the validation data, per fold
     # https://stats.stackexchange.com/questions/482787/how-to-do-data-augmentation-and-cross-validation-at-the-same-time
 
-##    model = Sequential()
-##    
-##    model.add(idk
-    # todo: model.add() a lot of shtuff
+    model = tf.keras.models.Sequential()
+
+    # initialize model architecture parameters
+    model.add(tf.keras.layers.Conv2D(
+        32, (3, 3),
+        activation=mp.ACTIVATION,
+        input_shape=(mp.img_HEIGHT, mp.img_WIDTH, 3)
+    ))
     
+    model.add(
+        tf.keras.layers.MaxPooling2D((2, 2))
+    )
+    model.add(
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
+    )
+    model.add(
+        tf.keras.layers.MaxPooling2D((2, 2)
+    ))
+    model.add(
+        tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
+    )
+    
+    # todo: model.add() a lot of shtuff
+
+    model.add(
+        tf.keras.layers.Flatten()
+    )
+    model.add(
+        tf.keras.layers.Dense(64, activation=mp.ACTIVATION)
+    )
+    # model.add(layers.Dense(NUM_CLASSES))
+
+
+       
+##    model.compile(
+##        optimizer=mp.OPTIMIZER,
+##        loss=mp.LOSS,
+##        metrics=mp.EVALUATION_METRICS
+##    )
+
 ##    model.fit(
 ##        current_trainset
 ##        batch_size = BATCH_SIZE
 ##        epochs=1
-##        validation_data = current_valset
-##            
-##    model.compile(
-##        optimizer=OPTIMIZER,
-##        loss=LOSS,
-##        metrics=METRICS
 ##    )
 
-    # todo: figure out how to combine results per fold
+    model.summary()
+
+    print('=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - end ===\n')
+
 #---
 
 ### Test Set
 
-test_images_DIR = os.path.join('test_imgdata', 'satellite_480x480')
-test_truemasks_DIR = os.path.join('test_imgdata', 'truemask_480x480')
-
-test_images = img_funcs.get_all_images_rgb(test_images_DIR)
-test_truemasks_color = img_funcs.get_all_images_rgb(test_truemasks_DIR)
-test_truemasks_index = [image_rgb_to_index(img) for img in test_truemasks_color]
-
-test_dataset = list(zip(test_images, test_images))
+##test_images_DIR = os.path.join('test_imgdata', 'satellite_480x480')
+##test_truemasks_DIR = os.path.join('test_imgdata', 'truemask_480x480')
+##
+##test_images = img_funcs.get_all_images_rgb(test_images_DIR)
+##test_truemasks_color = img_funcs.get_all_images_rgb(test_truemasks_DIR)
+##test_truemasks_index = [image_rgb_to_index(img) for img in test_truemasks_color]
+##
+##test_dataset = list(zip(test_images, test_images))
     # (image, mask) tuple x 500
 
     # same prayers as above with the Training/Validation Set
