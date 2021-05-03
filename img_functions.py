@@ -22,35 +22,50 @@ def print_image(image: list):
 
 #--- ----- Image Processing
 
+from pathlib import Path
+import cv2
+
 valid_image_extensions = [
     '.jpg',
     '.jpeg',
     '.png',
 ]
 
+# create (label_no, image_tensor) tuples for each individual image
+def create_datapoints_from_directory(dataset_path:str, label_names:list):
+    print('=== Create Dataset: from Directory - start ===')
+    
+    datapoints = []
+    
+    dataset_path_obj = Path(dataset_path)
+    dataclasses_paths = [i for i in dataset_path_obj.iterdir() if i.is_dir()]
+
+    # iterdir to check all subpaths
+    for i,subpath in enumerate(dataclasses_paths):
+        dataclass_path_obj = Path(subpath)
+
+        print('--- CD_D: ' + dataclass_path_obj.name + ' - ' + str(i) + ' of ' + str(len(dataclasses_paths)) + ' classes ---')
+
+        for image in get_all_images_rgb(dataclass_path_obj.__str__()):
+            image_class_name = dataclass_path_obj.name
+        
+            datapoints.append((
+                label_names.index(image_class_name),
+                image
+            ))
+
+    print('--- CD_D: ' + str(len(dataclasses_paths)) + ' of ' + str(len(dataclasses_paths)) + ' classes ---')
+
+    print('=== Create Dataset: from Directory - finish ===')
+
+    return datapoints
+
 ### create list of all images inside a folder path + its subfolders
-
-from pathlib import Path
-import cv2
-
-def get_all_image_names(file_path:str):
-    image_names = []
-
-    # convert file_path to pathlib object
-    # then iterdir to check all subpaths
-    for subpath in Path(file_path).iterdir():
-        # filter the files among the obtained subpaths
-        if subpath.is_file():
-            # filter the images among these files
-            if subpath.suffix in valid_image_extensions:
-                image_names.append(subpath)
-
-    return image_names
-
 def get_all_images_rgb(file_path:str):
+    file_path_obj = Path(file_path)
     images_rgb = []
     
-    for subpath in Path(file_path).iterdir():
+    for subpath in file_path_obj.iterdir():
         if subpath.is_file():
             if subpath.suffix in valid_image_extensions:
                 subpath_str = subpath.__str__()
@@ -62,14 +77,6 @@ def get_all_images_rgb(file_path:str):
     return images_rgb
     
 #---
-
-def normalize(image:list, mask:list):
-    # divides the RGB values of the image by 255
-    # changes the range of values in the tensor from 0-255 into 0-1
-    image = tf.cast(image, tf.float32) / 255.0
-
-    return image, mask
-
 
 ##define dataAugmentation:
 ##    let x be a random number from [0,1]
