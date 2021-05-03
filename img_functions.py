@@ -22,106 +22,46 @@ def print_image(image: list):
 
 #--- ----- Image Processing
 
+valid_image_extensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+]
+
 ### create list of all images inside a folder path + its subfolders
 
-import os
+from pathlib import Path
 import cv2
 
 def get_all_image_names(file_path:str):
     image_names = []
-    
-    for roots,dirs,files in os.walk(file_path):
-        for fn in files:
-            # check each filename if it falls under any of the valid datatypes
-            if fn.endswith('.jpg') or fn.endswith('.png'):
-                image_path = os.path.join(roots,fn)
-                image = cv2.imread(image_path)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-                images_rgb.append(image)
 
-    return images_rgb
+    # convert file_path to pathlib object
+    # then iterdir to check all subpaths
+    for subpath in Path(file_path).iterdir():
+        # filter the files among the obtained subpaths
+        if subpath.is_file():
+            # filter the images among these files
+            if subpath.suffix in valid_image_extensions:
+                image_names.append(subpath)
+
+    return image_names
 
 def get_all_images_rgb(file_path:str):
     images_rgb = []
     
-    for roots,dirs,files in os.walk(file_path):
-        for fn in files:
-            # check each filename if it falls under any of the valid datatypes
-            if fn.endswith('.jpg') or fn.endswith('.png'):
-                image_path = os.path.join(roots,fn)
-                image = cv2.imread(image_path)
+    for subpath in Path(file_path).iterdir():
+        if subpath.is_file():
+            if subpath.suffix in valid_image_extensions:
+                subpath_str = subpath.__str__()
+                
+                image = cv2.imread(subpath_str)
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
                 images_rgb.append(image)
 
     return images_rgb
-
-#---
-
-### convert True Mask to Land Use (numerical)
-
-def pixel_rgb_to_index(rgb_list:list, lookup_table:dict):
-    # converts a 3x1 list [R, G, B] into a 3x1 tuple (R, G, B)
-    # the tuple is then processed in the lookup dictionary
-    #       to get a single number for the actual classification
-    
-    return lookup_table.get(tuple(rgb_list), len(lookup_table))
-
-def image_rgb_to_index(rgb_image:list, lookup_table:dict):
-    # converts a HEIGHTxWIDTHx3 (in this case 20x20) tensor into
-    #       a HEIGHTxWIDTH 2D list
-    index_image = []
-
-    for row_of_pixels in rgb_image:
-        current_row = []
-        
-        for pixel in row_of_pixels:
-            current_row.append(pixel_rgb_to_index(pixel, lookup_table))
-
-        index_image.append(current_row)            
-
-    return index_image
-
-#---
-
-### convert image into grid of subdivided images
-
-small_sample = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16]]
-
-large_sample = []
-for i in range(1000):
-    large_sample.append([i for i in range(1000)])
     
 #---
-
-### compile images and masks to fit with CNN
-
-def load_image_train(datapoint:tuple):
-    # datapoint is just some iterable with both an image and a segmentation mask
-    # examples from tensorflow use iterable classes for these
-    # datapoint is usually a tuple as (image, mask)
-    
-    src_image = datapoint['image']
-    src_mask = datapoint['segmentation_mask']
-    input_image = tf.image.resize(src_image, (img_HEIGHT, img_WIDTH))
-    input_mask = tf.image.resize(src_mask, (img_HEIGHT, img_WIDTH))
-
-    #augment_data(input_image, input_mask)
-
-    input_image, input_mask = normalize(input_image, input_mask)
-
-    return input_image, input_mask
-
-def load_image_test(datapoint:tuple):
-    # see above re: datapoints
-    
-    src_image = datapoint['image']
-    src_mask = datapoint['segmentation_mask']
-    input_image = tf.image.resize(src_image, (img_HEIGHT, img_WIDTH))
-    input_mask = tf.image.resize(src_mask, (img_HEIGHT, img_WIDTH))
-
-    input_image, input_mask = normalize(input_image, input_mask)
-
-    return input_image, input_mask
 
 def normalize(image:list, mask:list):
     # divides the RGB values of the image by 255
