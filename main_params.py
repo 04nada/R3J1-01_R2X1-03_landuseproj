@@ -56,6 +56,8 @@ label_names_actual = [
 
 SEED = 727                                      # consistent randomization from a set seed
 
+NUM_CLASSES = 6
+
 TRAIN_SIZE = 2500                               
 FOLDS = 5                                       
 BATCH_SIZE = 32                                 # power of 2 for optimized CPU/GPU usage
@@ -72,7 +74,7 @@ EPOCHS = 1000                                   # filler number, just has to be 
 ACTIVATION = 'relu'
 
 OPTIMIZER = 'sgd'                                           # Stochastic Gradient Descent
-##LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparce Categorical Cross-Entropy
+LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparce Categorical Cross-Entropy
 ##EVALUATION_METRICS = [
 ##    tf.keras.metrics.MeanIoU()
 ##]
