@@ -1,2 +1,3 @@
-# temporarily exclude dataset combined by class
-/train_imgdata/trueclass_240x240_sortbyclass
+# temporarily exclude datasets combined by class
+/train_imgdata/trueclass_240x240_sortbyclass/*/*.png
+/test_imgdata/trueclass_240x240_sortbyclass/*/*.png
