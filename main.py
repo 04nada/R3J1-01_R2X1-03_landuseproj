@@ -27,28 +27,51 @@ train_dataset_directory = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sort
 # create datapoints from dataset directory and label_name list
 train_datapoints = img_funcs.create_datapoints_from_directory(
     train_dataset_directory.__str__(),
-    mp.label_names_full
+    mp.label_names_full,
+    normalize=True
 )
 random.shuffle(train_datapoints)
 
 # create k folds of training-validation splits
-# KFold follows the numpy seed
 kf = KFold(n_splits=mp.FOLDS, shuffle=True)
-train_datapoints_folds = list(kf.split(train_datapoints))
+    # KFold follows the numpy seed
+train_datapoints_fold_indices = kf.split(train_datapoints)
+    # kf.split only returns the randomized indices, not the actual sublists
+
+# cleanup
 
 
 ### CNN Training
 
-print('')
-for f in range(mp.FOLDS):
-    print('=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
-    
-    current_trainset_points = train_datapoints_folds[f][0]
-    current_valset_points = train_datapoints_folds[f][1]
+for f,current_splits in enumerate(train_datapoints_fold_indices):
+    print('\n=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
 
+    # get training set datapoints from randomly generated indices
+    current_trainset_indices = current_splits[0]
+    current_trainset_points = [train_datapoints[i] for i in current_trainset_indices]
+
+    # get validation set datapoints from randomly generated indices
+    current_valset_indices = current_splits[1]
+    current_valset_points = [train_datapoints[i] for i in current_valset_indices]
+
+    # split training set into image and label lists
+    current_train_images = np.array([point[0] for point in current_trainset_points])
+    current_train_labels = [point[1] for point in current_trainset_points]
+    current_train_labels = np.array(current_train_labels)
+
+    # split validation set into image and label lists
+    current_val_images = [point[0] for point in current_valset_points]
+    current_val_images = np.array(current_val_images)
+    current_val_labels = [point[1] for point in current_valset_points]
+    current_val_labels = np.array(current_val_labels)
+
+    # ---
+    
     # only do training augmentation here, so it will happen FOLDSx total
     # in order to augment training data but not the validation data, per fold
     # https://stats.stackexchange.com/questions/482787/how-to-do-data-augmentation-and-cross-validation-at-the-same-time
+
+    # ---
 
     model = tf.keras.models.Sequential()
 
@@ -59,42 +82,30 @@ for f in range(mp.FOLDS):
         input_shape=(mp.img_HEIGHT, mp.img_WIDTH, 3)
     ))
     
-    model.add(
-        tf.keras.layers.MaxPooling2D((2, 2))
-    )
-    model.add(
-        tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
-    )
-    model.add(
-        tf.keras.layers.MaxPooling2D((2, 2)
-    ))
-    model.add(
-        tf.keras.layers.Conv2D(64, (3, 3), activation='relu')
-    )
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu') )
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu'))
     
     # todo: model.add() a lot of shtuff
 
-    model.add(
-        tf.keras.layers.Flatten()
-    )
-    model.add(
-        tf.keras.layers.Dense(64, activation=mp.ACTIVATION)
-    )
-    # model.add(layers.Dense(NUM_CLASSES))
-
-
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(64, activation=mp.ACTIVATION))
+    model.add(tf.keras.layers.Dense(mp.NUM_CLASSES))
        
-##    model.compile(
-##        optimizer=mp.OPTIMIZER,
-##        loss=mp.LOSS,
-##        metrics=mp.EVALUATION_METRICS
-##    )
+    model.compile(
+        optimizer=mp.OPTIMIZER,
+        loss=mp.LOSS,
+        metrics=mp.EVALUATION_METRICS
+    )
 
-##    model.fit(
-##        current_trainset
-##        batch_size = BATCH_SIZE
-##        epochs=1
-##    )
+    model.fit(
+        current_train_images,
+        current_train_labels,
+        validation_data=(current_val_images, current_val_labels),
+        epochs = 1,
+        batch_size = mp.BATCH_SIZE
+    )
 
     model.summary()
 
