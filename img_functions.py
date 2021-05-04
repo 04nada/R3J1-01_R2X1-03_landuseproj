@@ -1,5 +1,14 @@
 import tensorflow as tf
 
+#--- ----- Console/Shell Printing
+
+# https://www.codegrepper.com/code-examples/python/python+turn+off+printing
+
+import contextlib
+
+with contextlib.redirect_stdout(None):
+    print("will not print")
+
 #--- ----- Image Displaying
 
 # display image/s using matplotlib.pyplot
@@ -32,10 +41,9 @@ valid_image_extensions = [
 ]
 
 # create (label_no, image_tensor) tuples for each individual image
-def create_datapoints_from_directory(dataset_path:str, label_names:list):
+def create_datapoints_from_directory(dataset_path:str, label_names:list,
+*, normalize=False):
     print('=== Create Dataset: from Directory - start ===')
-    
-    datapoints = []
     
     dataset_path_obj = Path(dataset_path)
     dataclasses_paths = [i for i in dataset_path_obj.iterdir() if i.is_dir()]
@@ -46,22 +54,18 @@ def create_datapoints_from_directory(dataset_path:str, label_names:list):
 
         print('--- CD_D: ' + dataclass_path_obj.name + ' - ' + str(i) + ' of ' + str(len(dataclasses_paths)) + ' classes ---')
 
-        for image in get_all_images_rgb(dataclass_path_obj.__str__()):
+        for image in get_all_images_rgb(dataclass_path_obj.__str__(), normalize=normalize): #normalize=normalize surprisingly works
             image_class_name = dataclass_path_obj.name
         
-            datapoints.append((
-                label_names.index(image_class_name),
-                image
-            ))
+            yield (image, label_names.index(image_class_name))
 
     print('--- CD_D: ' + str(len(dataclasses_paths)) + ' of ' + str(len(dataclasses_paths)) + ' classes ---')
 
     print('=== Create Dataset: from Directory - finish ===')
 
-    return datapoints
-
 ### create list of all images inside a folder path + its subfolders
-def get_all_images_rgb(file_path:str):
+def get_all_images_rgb(file_path:str,
+*, normalize=False):
     file_path_obj = Path(file_path)
     images_rgb = []
     
@@ -72,10 +76,57 @@ def get_all_images_rgb(file_path:str):
                 
                 image = cv2.imread(subpath_str)
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+                if normalize:
+                    image = image / 255.0
+                
                 images_rgb.append(image)
 
     return images_rgb
+
+# ---
+
+def dataset_generator(dataset_path:str, label_names:list,
+*, normalize=False):
+    print('=== Create Dataset: from Directory - start ===')
     
+    dataset_path_obj = Path(dataset_path)
+    dataclasses_paths = (i for i in dataset_path_obj.iterdir() if i.is_dir())
+
+    # iterdir to check all subpaths
+    for i,subpath in enumerate(dataclasses_paths):
+        dataclass_path_obj = Path(subpath)
+
+        print('--- CD_D: ' + dataclass_path_obj.name + ' - ' + str(i) + ' of ' + str(len(label_names)) + ' classes ---')
+
+        # generate each image tensor individually
+        # "yield from" is used to yield a second generator
+        
+        yield from images_from_dataclass_generator(dataclass_path_obj, normalize=normalize) #normalize=normalize surprisingly works
+        # todo: disable print/log from generator yield ONLY
+        
+    print('--- CD_D: ' + str(len(label_names)) + ' of ' + str(len(label_names)) + ' classes ---')
+
+    print('=== Create Dataset: from Directory - finish ===')
+
+def images_from_dataclass_generator(dataclass_path_obj:Path,
+*, normalize=False):
+    dataclass_path = dataclass_path_obj.__str__()
+    dataclass_path_name = dataclass_path_obj.name
+    
+    for subpath in dataclass_path_obj.iterdir():
+        if subpath.is_file():
+            if subpath.suffix in valid_image_extensions:
+                subpath_str = subpath.__str__()
+                
+                image = cv2.imread(subpath_str)
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+                if normalize:
+                    image = image / 255.0
+                
+                yield(image)
+                
 #---
 
 ##define dataAugmentation:
