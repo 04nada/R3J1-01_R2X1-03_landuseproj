@@ -14,7 +14,7 @@ valid_image_extensions = [
     '.png',
 ]
 
-# ---
+# --- -----
 
 ### Sorted Image Gridifier for all images and labels in their respective directories
 
@@ -70,8 +70,7 @@ subimage_height:int, subimage_width:int, lookup_colors:dict, label_names:int):
     print('--- SIG_D: Image ' + str(len(images_folder_filepaths)) + ' of ' + str(len(images_folder_filepaths)) + '---\n')
         
     print('=== Sorted Image Gridifier: by Directory - finish ===')
-    
-# ---
+
 
 ### Generate Subimages from gridify_image(), unsorted all into a folder
 
@@ -112,6 +111,8 @@ def generate_unsorted_grid_image_files(is_last_row_bigger=False, is_last_column_
     gridified_image = gridify_image(src_image, grid_height, grid_width, is_last_row_bigger, is_last_column_bigger)
 
     # ---
+
+    ### Save all subimages in gridified_image as image files
     
     for gi_r,gridified_image_row in enumerate(gridified_image):
         print('-- UIG: Row ' + str(gi_r) + ' of ' + str(len(gridified_image)) + ' --')
@@ -134,6 +135,7 @@ def generate_unsorted_grid_image_files(is_last_row_bigger=False, is_last_column_
 
     print('== Unsorted Image Gridifier - finish ==')
 
+# ---
 
 ### Generate Subimages from gridify_image(), sorted by class/label into a folder
   
