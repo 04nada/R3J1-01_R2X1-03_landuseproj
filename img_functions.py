@@ -1,13 +1,10 @@
 import tensorflow as tf
 
-#--- ----- Console/Shell Printing
+#--- ----- Logging
 
-# https://www.codegrepper.com/code-examples/python/python+turn+off+printing
-
-import contextlib
-
-with contextlib.redirect_stdout(None):
-    print("will not print")
+def t_print(text:str, toggle:bool) -> None:
+    if toggle:
+        print(text)
 
 #--- ----- Image Displaying
 
@@ -16,7 +13,7 @@ with contextlib.redirect_stdout(None):
 
 from matplotlib import pyplot as plt
 
-def display_images(display_list:list):
+def display_images(display_list:list) -> None:
     plt.figure(figsize=(15, 15))
 
     for i in range(len(display_list)):
@@ -25,9 +22,10 @@ def display_images(display_list:list):
         #plt.axis('off')
     plt.show()
 
-def print_image(image: list):
+def print_image(image:list) -> None:
     for row_of_pixels in image:
         print(row_of_pixels)
+
 
 #--- ----- Image Processing
 
@@ -40,93 +38,113 @@ valid_image_extensions = [
     '.png',
 ]
 
-# create (label_no, image_tensor) tuples for each individual image
-def create_datapoints_from_directory(dataset_path:str, label_names:list,
-*, normalize=False):
-    print('=== Create Dataset: from Directory - start ===')
-    
-    dataset_path_obj = Path(dataset_path)
-    dataclasses_paths = [i for i in dataset_path_obj.iterdir() if i.is_dir()]
+# --- ----- Dataset Generation
 
-    # iterdir to check all subpaths
-    for i,subpath in enumerate(dataclasses_paths):
-        dataclass_path_obj = Path(subpath)
+# ReGenerator class to allow generator reusability
+class ReGenerator:
+    def __init__(self, gen_f:'generator_function',
+    args:'iterator'=(),
+    kwargs:'dict'={}):
+        self.generator_function = gen_f
+        self.generator_args = tuple(args)
+        self.generator_kwargs = kwargs
 
-        print('--- CD_D: ' + dataclass_path_obj.name + ' - ' + str(i) + ' of ' + str(len(dataclasses_paths)) + ' classes ---')
+    def gen(self,
+    extra_args:'iterator'=(),
+    extra_kwargs:'dict'={}) -> 'generator':
+        # unpack main parameters first (*args)
+        # then unpack named parameters at the end (**kwargs)
+        return self.generator_function(*self.generator_args, *extra_args, **self.generator_kwargs, **extra_kwargs)
 
-        for image in get_all_images_rgb(dataclass_path_obj.__str__(), normalize=normalize): #normalize=normalize surprisingly works
-            image_class_name = dataclass_path_obj.name
+    def length(self,
+    extra_args:'iterator'=(),
+    extra_kwargs:'dict'={}) -> int:
+        # if length has been previously computed, return that memorized value
+        if hasattr(self, 'generator_length'):
+            return self.generator_length
+
+        # get the total number of values that the generator function produces
+        genlen = 0
+        for g in self.gen(*extra_args, **extra_kwargs):
+            genlen += 1
+
+        # remember the length if it has not been computed before
+        self.generator_length = genlen
         
-            yield (image, label_names.index(image_class_name))
-
-    print('--- CD_D: ' + str(len(dataclasses_paths)) + ' of ' + str(len(dataclasses_paths)) + ' classes ---')
-
-    print('=== Create Dataset: from Directory - finish ===')
-
-### create list of all images inside a folder path + its subfolders
-def get_all_images_rgb(file_path:str,
-*, normalize=False):
-    file_path_obj = Path(file_path)
-    images_rgb = []
-    
-    for subpath in file_path_obj.iterdir():
-        if subpath.is_file():
-            if subpath.suffix in valid_image_extensions:
-                subpath_str = subpath.__str__()
-                
-                image = cv2.imread(subpath_str)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-
-                if normalize:
-                    image = image / 255.0
-                
-                images_rgb.append(image)
-
-    return images_rgb
+        return genlen
 
 # ---
 
+import random
+
 def dataset_generator(dataset_path:str, label_names:list,
-*, normalize=False):
-    print('=== Create Dataset: from Directory - start ===')
-    
+*, normalize:bool=False, n=None, log_progress:bool=True) -> 'generator':
+    t_print('=== Yield Dataset: from Directory - start ===', log_progress)
+
+    # get dataset directory as Path object
     dataset_path_obj = Path(dataset_path)
+
+    # get all class directories found inside the dataset directory
+    # iterdir() to check all subpaths inside a Path object
     dataclasses_paths = (i for i in dataset_path_obj.iterdir() if i.is_dir())
-
-    # iterdir to check all subpaths
-    for i,subpath in enumerate(dataclasses_paths):
-        dataclass_path_obj = Path(subpath)
-
-        print('--- CD_D: ' + dataclass_path_obj.name + ' - ' + str(i) + ' of ' + str(len(label_names)) + ' classes ---')
-
-        # generate each image tensor individually
-        # "yield from" is used to yield a second generator
-        
-        yield from images_from_dataclass_generator(dataclass_path_obj, normalize=normalize) #normalize=normalize surprisingly works
-        # todo: disable print/log from generator yield ONLY
-        
-    print('--- CD_D: ' + str(len(label_names)) + ' of ' + str(len(label_names)) + ' classes ---')
-
-    print('=== Create Dataset: from Directory - finish ===')
-
-def images_from_dataclass_generator(dataclass_path_obj:Path,
-*, normalize=False):
-    dataclass_path = dataclass_path_obj.__str__()
-    dataclass_path_name = dataclass_path_obj.name
     
-    for subpath in dataclass_path_obj.iterdir():
-        if subpath.is_file():
-            if subpath.suffix in valid_image_extensions:
-                subpath_str = subpath.__str__()
-                
-                image = cv2.imread(subpath_str)
-                image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    for sp,subpath in enumerate(dataclasses_paths):
+        # get dataclass path (subpath) as Path object
+        subpath_obj = Path(subpath)
 
-                if normalize:
-                    image = image / 255.0
-                
-                yield(image)
-                
+        t_print('--- CD_D: ' + subpath_obj.name + ' - ' + str(sp) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
+
+        # get label number of current dataclass path
+        image_dataclass_name = subpath_obj.name
+        label_number = label_names.index(image_dataclass_name)
+
+        # generate each datapoint individually
+        # "yield from" is used to keep yielding values from another generator
+        yield from yield_datapoints_rgb(subpath, label_number, normalize=normalize, n=n)
+
+    t_print('--- CD_D: ' + str(len(label_names)) + ' of ' + str(len(label_names)) + ' classes finished---', log_progress)
+
+    t_print('=== Yield Dataset: from Directory - finish ===', log_progress)
+
+def yield_datapoints_rgb(image_directory:str, label_number:int,
+*, normalize:bool=False, n=None) -> 'generator':
+    # get image directory as Path object
+    image_directory_obj = Path(image_directory)
+
+    # get all valid image files inside the given image directory
+    # use the ReGenerator class to get length of generator
+    image_files = ReGenerator(
+        lambda : (subpath for subpath in image_directory_obj.iterdir() if subpath.is_file() and subpath.suffix in valid_image_extensions)
+    )
+    
+    # if n is specified, randomly select n indices from the subfiles
+    if n is not None:
+        random_indices = random.sample(range(image_files.length()), n)
+
+    # create an (image, label) datapoint for each valid image file obtained
+    for i_f,image_file in enumerate(image_files.gen()):
+        # if n is specified, do not yield an image if
+        #     it is not within the randomly generated indices
+        if n is not None and i_f not in random_indices:
+            continue
+
+        # --- Image Generation
+
+        # convert image filepath from Path object into its string
+        image_file_str = image_file.__str__()
+
+        # read image file data as a matrix of RGB pixels
+        image = cv2.imread(image_file_str)
+        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+        # if normalize is True, pixel values get converted from [0,255] to [0,1]
+        if normalize:
+            image = image / 255.0
+
+        # ---
+        
+        yield (image, label_number)
+
 #---
 
 ##define dataAugmentation:
