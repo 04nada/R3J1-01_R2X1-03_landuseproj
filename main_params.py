@@ -21,7 +21,7 @@ lookup_rgb_to_index_full = {
     (0,0,87): 7	            # transport - dark blue - #000057
 }
 
-lookup_rgb_to_index_actual = {
+lookup_rgb_to_index = {
     (160,32,239): 0,	    # commercial - purple - #A020EF
     (221,190,170): 1,       # industrial - beige - #DDBEAA
     (237,0,0): 2,   	    # institutional - red - #ED0000
@@ -41,7 +41,7 @@ label_names_full = [
     'transport'
 ]
 
-label_names_actual = [
+label_names = [
     'commercial',
     'industrial',
     'institutional',
@@ -58,12 +58,14 @@ SEED = 727                                      # consistent randomization from 
 
 NUM_CLASSES = 6
 
-TRAIN_SIZE = 2500                               
-FOLDS = 5                                       
-BATCH_SIZE = 32                                 # power of 2 for optimized CPU/GPU usage
+TRAIN_SAMPLES_PER_CLASS = 400
+TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS*NUM_CLASSES                       
+FOLDS = 5
+BATCH_SIZE = 128                                 # power of 2 for optimized CPU/GPU usage
 STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE      # floor division
 
-TEST_SIZE = 500                                 
+TEST_SAMPLES_PER_CLASS = 1
+TEST_SIZE = TEST_SAMPLES_PER_CLASS*NUM_CLASSES                                
 
 EPOCHS = 1000                                   # filler number, just has to be more than enough to overfit before reaching the final epoch
 
@@ -74,7 +76,7 @@ EPOCHS = 1000                                   # filler number, just has to be 
 ACTIVATION = 'relu'
 
 OPTIMIZER = 'sgd'                                           # Stochastic Gradient Descent
-LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparce Categorical Cross-Entropy
-##EVALUATION_METRICS = [
-##    tf.keras.metrics.MeanIoU()
-##]
+LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparse Categorical Cross-Entropy
+EVALUATION_METRICS = [
+    'accuracy'
+]
