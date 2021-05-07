@@ -1,5 +1,5 @@
 import main_params as mp
-import model_functions as img_funcs
+import model_functions as model_funcs
 
 import tensorflow as tf
 from sklearn.model_selection import KFold
@@ -26,8 +26,8 @@ train_dataset_directory = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sort
 
 # create datapoint generators from dataset directory and label_name list
 # use the ReGenerator class for reusability
-train_datapoints_regen = img_funcs.ReGenerator(
-    img_funcs.dataset_generator,
+train_datapoints_regen = model_funcs.ReGenerator(
+    model_funcs.dataset_generator,
     (train_dataset_directory.__str__(),
         mp.label_names),
     {'normalize': True,
@@ -56,32 +56,32 @@ for f in range(mp.FOLDS):
     current_trainset_indices, current_valset_indices = next(train_datapoints_fold_indices)
 
     # get training set datapoints from randomly generated indices
-    current_trainset_points = img_funcs.ReGenerator(
+    current_trainset_points = model_funcs.ReGenerator(
         lambda : (datapoint
             for i,datapoint in enumerate(train_datapoints_regen.gen((), {'log_progress': False}))
             if i in current_trainset_indices)
     )
 
     # get validation set datapoints from randomly generated indices
-    current_valset_points = img_funcs.ReGenerator(
+    current_valset_points = model_funcs.ReGenerator(
         lambda : (datapoint
             for i,datapoint in enumerate(train_datapoints_regen.gen((), {'log_progress': False}))
             if i in current_valset_indices)
     )
 
     # split training set into image and label generators
-    current_train_images = img_funcs.ReGenerator(
+    current_train_images = model_funcs.ReGenerator(
         lambda : (point[0] for point in current_trainset_points.gen())
     )
-    current_train_labels = img_funcs.ReGenerator(
+    current_train_labels = model_funcs.ReGenerator(
         lambda : (point[1] for point in current_trainset_points.gen())
     )
 
     # split validation set into image and label generators
-    current_val_images = img_funcs.ReGenerator(
+    current_val_images = model_funcs.ReGenerator(
         lambda : (point[0] for point in current_valset_points.gen())
     )
-    current_val_labels = img_funcs.ReGenerator(
+    current_val_labels = model_funcs.ReGenerator(
         lambda : (point[1] for point in current_valset_points.gen())
     )
     
@@ -161,16 +161,16 @@ for f in range(mp.FOLDS):
 # get testing directory wrt current working directory
 test_dataset_directory = Path.cwd() / 'test_imgdata' / 'trueclass_240x240_sortbyclass_actual'
 
-test_datapoints_regen = img_funcs.ReGenerator(
-    img_funcs.dataset_generator,
+test_datapoints_regen = model_funcs.ReGenerator(
+    model_funcs.dataset_generator,
     (test_dataset_directory.__str__(),
         mp.label_names),
     {'normalize': True,
         'n': mp.TEST_SAMPLES_PER_CLASS}
 )
 
-##test_images = img_funcs.get_all_images_rgb(test_images_DIR)
-##test_truemasks_color = img_funcs.get_all_images_rgb(test_truemasks_DIR)
+##test_images = model_funcs.get_all_images_rgb(test_images_DIR)
+##test_truemasks_color = model_funcs.get_all_images_rgb(test_truemasks_DIR)
 ##test_truemasks_index = [image_rgb_to_index(img) for img in test_truemasks_color]
 ##
 ##test_dataset = list(zip(test_images, test_images))
