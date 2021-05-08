@@ -37,8 +37,8 @@ subimage_height:int, subimage_width:int, lookup_colors:dict, label_names:int):
     # search across all image files
     for image_filepath in images_folder_directory.iterdir():
         if image_filepath.is_file() and image_filepath.suffix in valid_image_extensions:
-                # store all image filepaths from each name folder
-                images_folder_filepaths.append(image_filepath)
+            # store all image filepaths from each name folder
+            images_folder_filepaths.append(image_filepath)
 
     # search across all name folders             
     for labels_filepath in labelses_folder_directory.iterdir():
@@ -200,8 +200,8 @@ def generate_sorted_grid_image_files(is_last_row_bigger=False, is_last_column_bi
             # append LETTERnumber code for each subimage
             filename = (src_image_filename
                 + ' '
-                + chr(65+gi_c)    # column letter, A-?
-                + str(gi_r+1)         # row number, 1-?
+                + chr(65+gi_c)          # column letter, A-?
+                + str(gi_r+1)           # row number, 1-?
             )
 
             file_abspath = subimage_directory / class_name / filename

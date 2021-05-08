@@ -61,7 +61,7 @@ NUM_CLASSES = 6
 TRAIN_SAMPLES_PER_CLASS = 400
 TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS*NUM_CLASSES                       
 FOLDS = 5
-BATCH_SIZE = 128                                 # power of 2 for optimized CPU/GPU usage
+BATCH_SIZE = 128                                # power of 2 for optimized CPU/GPU usage
 STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE      # floor division
 
 TEST_SAMPLES_PER_CLASS = 1
