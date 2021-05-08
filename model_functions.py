@@ -88,10 +88,7 @@ def dataset_generator(dataset_path:str, label_names:list,
     # iterdir() to check all subpaths inside a Path object
     dataclasses_paths = (i for i in dataset_path_obj.iterdir() if i.is_dir())
     
-    for sp,subpath in enumerate(dataclasses_paths):
-        # get dataclass path (subpath) as Path object
-        subpath_obj = Path(subpath)
-
+    for sp,subpath_obj in enumerate(dataclasses_paths):
         t_print('--- CD_D: ' + subpath_obj.name + ' - ' + str(sp) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
 
         # get label number of current dataclass path
@@ -100,6 +97,7 @@ def dataset_generator(dataset_path:str, label_names:list,
 
         # generate each datapoint individually
         # "yield from" is used to keep yielding values from another generator
+        subpath = subpath_obj.__str__()
         yield from yield_datapoints_rgb(subpath, label_number, normalize=normalize, n=n)
 
     t_print('--- CD_D: ' + str(len(label_names)) + ' of ' + str(len(label_names)) + ' classes finished---', log_progress)
