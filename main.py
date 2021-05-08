@@ -43,8 +43,8 @@ train_datapoints_length = train_datapoints_regen.length()
 train_datapoints_filler_list = [i for i in range(train_datapoints_length)]
 # kf.split only returns the randomized indices, not the actual sublists, as a generator of array pairs
 train_datapoints_fold_indices = kf.split(train_datapoints_filler_list)
-    
-       
+
+
 ### CNN Training
 
 models = []
@@ -104,13 +104,13 @@ for f in range(mp.FOLDS):
 
     # continue applying convolutional layers while occasionally doing pooling
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu') )
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION) )
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation='relu'))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION))
     
     # flatten CNN model to a single array of values
     model.add(tf.keras.layers.Flatten())
@@ -173,8 +173,3 @@ test_datapoints_regen = model_funcs.ReGenerator(
 ##test_truemasks_color = model_funcs.get_all_images_rgb(test_truemasks_DIR)
 ##test_truemasks_index = [image_rgb_to_index(img) for img in test_truemasks_color]
 ##
-##test_dataset = list(zip(test_images, test_images))
-    # (image, mask) tuple x 500
-
-    # same prayers as above with the Training/Validation Set
-    # todo: remember to set to (test_images, test_truemasks_index) eventually
