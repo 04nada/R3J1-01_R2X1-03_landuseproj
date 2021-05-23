@@ -144,8 +144,8 @@ for f in range(mp.FOLDS):
     model.fit(
         current_train_images_array,
         current_train_labels_array,
-        validation_data=(current_val_images_array current_val_labels_array),
-        epochs = 1,
+        validation_data=(current_val_images_array, current_val_labels_array),
+        epochs = 5,
         batch_size = mp.BATCH_SIZE
     )
 

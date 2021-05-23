@@ -78,5 +78,6 @@ ACTIVATION = 'relu'
 OPTIMIZER = 'sgd'                                           # Stochastic Gradient Descent
 LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparse Categorical Cross-Entropy
 EVALUATION_METRICS = [
+    tf.keras.losses.SparseCategoricalCrossentropy(),
     'accuracy'
 ]
