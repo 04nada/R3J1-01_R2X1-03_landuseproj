@@ -21,14 +21,11 @@ random.seed(mp.SEED)
 
 ### Training + Validation Sets
 
-# get training directory wrt current working directory
-train_dataset_directory = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sortbyclass_actual'
-
 # create datapoint generators from dataset directory and label_name list
 # use the ReGenerator class for reusability
 train_datapoints_regen = model_funcs.ReGenerator(
     model_funcs.dataset_generator,
-    (train_dataset_directory.__str__(),
+    (mp.TRAIN_DATASET_DIRECTORY.__str__(),
         mp.label_names),
     {'normalize': True,
         'n': mp.TRAIN_SAMPLES_PER_CLASS}
@@ -145,7 +142,7 @@ for f in range(mp.FOLDS):
         current_train_images_array,
         current_train_labels_array,
         validation_data=(current_val_images_array, current_val_labels_array),
-        epochs = 5,
+        epochs = mp.EPOCHS,
         batch_size = mp.BATCH_SIZE
     )
 
@@ -158,18 +155,10 @@ for f in range(mp.FOLDS):
 
 ### Test Set
 
-# get testing directory wrt current working directory
-test_dataset_directory = Path.cwd() / 'test_imgdata' / 'trueclass_240x240_sortbyclass_actual'
-
 test_datapoints_regen = model_funcs.ReGenerator(
     model_funcs.dataset_generator,
-    (test_dataset_directory.__str__(),
+    (mp.TEST_DATASET_DIRECTORY.__str__(),
         mp.label_names),
     {'normalize': True,
         'n': mp.TEST_SAMPLES_PER_CLASS}
 )
-
-##test_images = model_funcs.get_all_images_rgb(test_images_DIR)
-##test_truemasks_color = model_funcs.get_all_images_rgb(test_truemasks_DIR)
-##test_truemasks_index = [image_rgb_to_index(img) for img in test_truemasks_color]
-##
