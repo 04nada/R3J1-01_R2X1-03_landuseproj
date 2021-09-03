@@ -1,4 +1,6 @@
 import tensorflow as tf
+import tensorflow_addons as tfa
+import keras_metrics as km
 from pathlib import Path
 
 #--- ----- CNN Parameters
@@ -58,8 +60,11 @@ label_names = [
 SEED = 727                                          # consistent randomization from a set seed
 
 NUM_CLASSES = 6
+FOLDS = 5
 
-BATCH_SIZE = 32                                     # power of 2 for optimized CPU/GPU usage
+EPOCHS = 40                                         # filler number, just has to be more than enough to overfit before reaching the final epoch
+BATCH_SIZE = 8                                      # power of 2 for optimized CPU/GPU usage
+LEARNING_RATE = 0.01                                # decimal power of 10
 
 # training set
 TRAIN_DATASET_DIRECTORY = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sortbyclass_actual'
@@ -68,7 +73,12 @@ TRAIN_SAMPLES_PER_CLASS = 400
 TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS * NUM_CLASSES
 TRAIN_STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE    # floor division
 
-FOLDS = 5
+
+
+#---
+
+# once all models are observed manually, u
+CHOSEN_FOLD = 1
 
 # test set
 TEST_DATASET_DIRECTORY = Path.cwd() / 'test_imgdata' / 'trueclass_240x240_sortbyclass_actual'
@@ -77,7 +87,6 @@ TEST_SAMPLES_PER_CLASS = 1
 TEST_SIZE = TEST_SAMPLES_PER_CLASS * NUM_CLASSES
 TEST_STEPS_PER_EPOCH = TEST_SIZE // BATCH_SIZE      # floor division
 
-EPOCHS = 5                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
 
 #---
 
@@ -85,10 +94,8 @@ EPOCHS = 5                                          # filler number, just has to
 
 ACTIVATION = 'relu'
 
-OPTIMIZER = 'sgd'                                           # Stochastic Gradient Descent
-LOSS = tf.keras.losses.SparseCategoricalCrossentropy()      # Sparse Categorical Cross-Entropy
+OPTIMIZER = 'sgd'                                                           # Stochastic Gradient Descent
+LOSS = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)      # Sparse Categorical Cross-Entropy
 EVALUATION_METRICS = [
-    tf.keras.metrics.SparseCategoricalCrossentropy(),
-    tf.keras.metrics.Accuracy(),
-    tf.keras.metrics.Precision()
+    'accuracy'
 ]
