@@ -2,10 +2,11 @@ import main_params as mp
 import model_functions as model_funcs
 
 import tensorflow as tf
+import tensorflow_addons as tfa
+from matplotlib import pyplot as plt
 from sklearn.model_selection import KFold
 import random
 import numpy as np
-import PIL
 
 from pathlib import Path
 import cv2
@@ -28,7 +29,7 @@ train_datapoints_regen = model_funcs.ReGenerator(
     (mp.TRAIN_DATASET_DIRECTORY.__str__(),
         mp.label_names),
     {'normalize': True,
-        'n': mp.TRAIN_SAMPLES_PER_CLASS}
+        'n': None} # mp.TRAIN_SAMPLES_PER_CLASS
 )
 
 # create k folds of random/shuffled training-validation splits
@@ -47,8 +48,22 @@ train_datapoints_fold_indices = kf.split(train_datapoints_filler_list)
 models = []
 
 for f in range(mp.FOLDS):
-    print('\n=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
+    # first check if CHOSEN_FOLD is set to a specific acceptable value
+    #     (otherwise, set CHOSEN_FOLD to -1)
 
+    # if CHOSEN_FOLD is not -1, then only train a model for that specific fold,
+    #     and skip all other folds in training
+    
+    if mp.CHOSEN_FOLD > 0:
+        if f+1 == mp.CHOSEN_FOLD:
+            print('\n=== CHOSEN: FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
+        else:
+            continue
+    else:
+        print('\n=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
+
+    # ---
+    
     # get indices of training data and validation data for the current fold
     current_trainset_indices, current_valset_indices = next(train_datapoints_fold_indices)
 
@@ -94,20 +109,19 @@ for f in range(mp.FOLDS):
 
     # initialize model architecture parameters
     model.add(tf.keras.layers.Conv2D(
-        32, (3, 3),
+        16, (9, 9),
         activation=mp.ACTIVATION,
         input_shape=(mp.img_HEIGHT, mp.img_WIDTH, 3)
     ))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
     # continue applying convolutional layers while occasionally doing pooling
+    model.add(tf.keras.layers.Conv2D(32, (7, 7), activation=mp.ACTIVATION) )
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION) )
+    model.add(tf.keras.layers.Conv2D(16, (5, 5), activation=mp.ACTIVATION) )
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION))
+    model.add(tf.keras.layers.Conv2D(32, (5, 5), activation=mp.ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION))
-    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), activation=mp.ACTIVATION))
     
     # flatten CNN model to a single array of values
     model.add(tf.keras.layers.Flatten())
@@ -123,6 +137,10 @@ for f in range(mp.FOLDS):
         loss=mp.LOSS,
         metrics=mp.EVALUATION_METRICS
     )
+    tf.keras.backend.set_value(model.optimizer.learning_rate, mp.LEARNING_RATE)
+
+    print('--- FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - model.summary() ---')
+    model.summary()
 
     # convert final image and label generators to numpy arrays,
     # so that they get accepted as the model.fit() parameters
@@ -138,27 +156,60 @@ for f in range(mp.FOLDS):
     # fit training and validation to model
     # also setting other parameters for how the model runs, namely epochs and batch size
     print('--- FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - model.fit() ---')
-    model.fit(
+    history = model.fit(
         current_train_images_array,
         current_train_labels_array,
-        validation_data=(current_val_images_array, current_val_labels_array),
+        validation_data = (current_val_images_array, current_val_labels_array),
         epochs = mp.EPOCHS,
-        batch_size = mp.BATCH_SIZE
+        batch_size = mp.BATCH_SIZE,
+        verbose = 2
     )
 
-    model.summary()
-    #models.append(model)
+    # ---
+
+    models.append(model)
+
+##    pyplot.subplot(212)
+##    pyplot.title('Accuracy')
+##    pyplot.plot(history.history['accuracy'], label='train')
+##    pyplot.plot(history.history['val_accuracy'], label='test')
+##    pyplot.legend()
+##    pyplot.show()
+
+    # ---
+
+    # check for which end-of-fold message to print
     
-    print('=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - end ===')
+    if mp.CHOSEN_FOLD > 0:
+        print('=== CHOSEN FOLD: Fold ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - end ===')
+        break
+    else:
+        print('=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - end ===')
 
 #---
 
 ### Test Set
 
-test_datapoints_regen = model_funcs.ReGenerator(
-    model_funcs.dataset_generator,
-    (mp.TEST_DATASET_DIRECTORY.__str__(),
-        mp.label_names),
-    {'normalize': True,
-        'n': mp.TEST_SAMPLES_PER_CLASS}
-)
+if mp.CHOSEN_FOLD > 0:
+    test_datapoints_regen = model_funcs.ReGenerator(
+        model_funcs.dataset_generator,
+        (mp.TEST_DATASET_DIRECTORY.__str__(),
+            mp.label_names),
+        {'normalize': True,
+            'n': None}
+    )
+
+    test_images = model_funcs.ReGenerator(
+        lambda : (point[0] for point in test_datapoints_regen.gen())
+    )
+
+    test_labels = model_funcs.ReGenerator(
+        lambda : (point[1] for point in test_datapoints_regen.gen())
+    )
+
+    test_images_array = np.array([image for image in test_images.gen()])
+    test_labels_array = np.array([label for label in test_labels.gen()])
+
+    # ---
+    
+    results = models[0].evaluate(test_images_array, test_labels_array, verbose=2)
