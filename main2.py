@@ -9,7 +9,6 @@ import random
 import numpy as np
 
 from pathlib import Path
-import cv2
 
 #--- ----- CNN Implementation
 
@@ -22,25 +21,25 @@ random.seed(mp.SEED)
 
 ### Training + Validation Sets
 
-# create datapoint generators from dataset directory and label_name list
-# use the ReGenerator class for reusability
-train_datapoints_regen = model_funcs.ReGenerator(
-    model_funcs.dataset_generator,
-    (mp.TRAIN_DATASET_DIRECTORY.__str__(),
-        mp.label_names),
-    {'normalize': True,
-        'n': None} # mp.TRAIN_SAMPLES_PER_CLASS
-)
-
-# create k folds of random/shuffled training-validation splits
-# KFold follows the numpy seed
-kf = KFold(n_splits=mp.FOLDS, shuffle=True)
-
-# less memory-exhaustive list with the same "length" as the datapoints generator
-train_datapoints_length = train_datapoints_regen.length()
-train_datapoints_filler_list = [i for i in range(train_datapoints_length)]
-# kf.split only returns the randomized indices, not the actual sublists, as a generator of array pairs
-train_datapoints_fold_indices = kf.split(train_datapoints_filler_list)
+### create datapoint generators from dataset directory and label_name list
+### use the ReGenerator class for reusability
+##train_datapoints_regen = model_funcs.ReGenerator(
+##    model_funcs.dataset_generator,
+##    (mp.TRAIN_DATASET_DIRECTORY.__str__(),
+##        mp.label_names),
+##    {'normalize': True,
+##        'n': None} # mp.TRAIN_SAMPLES_PER_CLASS
+##)
+##
+### create k folds of random/shuffled training-validation splits
+### KFold follows the numpy seed
+##kf = KFold(n_splits=mp.FOLDS, shuffle=True)
+##
+### less memory-exhaustive list with the same "length" as the datapoints generator
+##train_datapoints_length = train_datapoints_regen.length()
+##train_datapoints_filler_list = [i for i in range(train_datapoints_length)]
+### kf.split only returns the randomized indices, not the actual sublists, as a generator of array pairs
+##train_datapoints_fold_indices = kf.split(train_datapoints_filler_list)
 
 # ---
 
@@ -180,12 +179,11 @@ for f in range(mp.FOLDS):
     # also setting other parameters for how the model runs, namely epochs and batch size
     print('--- FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - model.fit() ---')
     history = model.fit(
-        train_ds_images,
-        train_ds_labels,
-        validation_data = (val_ds_images, val_ds_labels),
+        train_ds,
+        validation_data = val_ds,
         epochs = mp.EPOCHS,
         batch_size = mp.BATCH_SIZE,
-        verbose = 2
+        verbose = 1
     )
 
     # ---
