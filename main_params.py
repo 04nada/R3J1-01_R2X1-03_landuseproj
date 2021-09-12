@@ -63,8 +63,8 @@ NUM_CLASSES = 6
 FOLDS = 5
 
 EPOCHS = 40                                         # filler number, just has to be more than enough to overfit before reaching the final epoch
-BATCH_SIZE = 8                                      # power of 2 for optimized CPU/GPU usage
-LEARNING_RATE = 0.01                                # decimal power of 10
+BATCH_SIZE = 32                                     # power of 2 for optimized CPU/GPU usage
+LEARNING_RATE = 0.1                                 # decimal power of 10
 
 # training set
 TRAIN_DATASET_DIRECTORY = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sortbyclass_actual'
@@ -95,7 +95,7 @@ TEST_STEPS_PER_EPOCH = TEST_SIZE // BATCH_SIZE      # floor division
 ACTIVATION = 'relu'
 
 OPTIMIZER = 'sgd'                                                           # Stochastic Gradient Descent
-LOSS = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)      # Sparse Categorical Cross-Entropy
+LOSS = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)      # Sparse Categorical Cross-Entropy
 EVALUATION_METRICS = [
     'accuracy'
 ]
