@@ -26,11 +26,9 @@ def print_image(image:list) -> None:
     for row_of_pixels in image:
         print(row_of_pixels)
 
-
-#--- ----- Image Processing
+#--- ----- File Processing
 
 from pathlib import Path
-import cv2
 
 valid_image_extensions = [
     '.jpg',
@@ -76,6 +74,14 @@ class ReGenerator:
 # ---
 
 import random
+import cv2
+
+def generate_rgb_image_from_path(image_path_string:str) -> 'matrix':
+    # read image file data as a matrix of RGB pixels
+    image = cv2.imread(image_path_string)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+
+    return image
 
 def dataset_generator(dataset_path:str, label_names:list,
 *, normalize:bool=False, n=None, log_progress:bool=True) -> 'generator':
@@ -126,14 +132,8 @@ def yield_datapoints_rgb(image_directory:str, label_number:int,
         if n is not None and i_f not in random_indices:
             continue
 
-        # --- Image Generation
-
         # convert image filepath from Path object into its string
-        image_file_str = image_file.__str__()
-
-        # read image file data as a matrix of RGB pixels
-        image = cv2.imread(image_file_str)
-        image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+        image = generate_rgb_image_from_path(image_file.__str__())
 
         # if normalize is True, pixel values get converted from [0,255] to [0,1]
         if normalize:
@@ -161,3 +161,109 @@ def augment_data(image:list, mask:list):
 
     # todo : clarify if do all 4 rotations from 0 to 270?
     # still needs fixing with regards to actually increasing the number of images
+
+#--- ----- Model Graphs
+
+def plot_training_graphs(number_of_epochs:int,
+*, train_accuracy:list, train_loss:list,
+**kwargs) -> None:
+    print('Plotting Training Graphs...')
+
+    # ---
+    
+    epochs = range(1, number_of_epochs+1)
+
+    training_accuracy = kwargs.get(train_accuracy, None)
+    training_precision = kwargs.get(train_precision, None)
+    training_recall = kwargs.get(train_recall, None)
+
+    validation_accuracy = kwargs.get(val_accuracy, None)
+    validation_precision = kwargs.get(val_precision, None)
+    validation_recall = kwargs.get(val_recall, None)
+
+    training_loss = kwargs.get(train_loss, None)
+    validation_loss = kwargs.get(val_loss, None)
+
+    # --- Metric Graphs
+
+    if training_accuracy is not None:
+        plt.plot(epochs, training_accuracy, 'ro-', label='Training Accuracy')               # red circle + solid line (line graph)
+
+    if training_precision is not None:
+        plt.plot(epochs, training_precision, 'go-', label='Training Precision')             # green circle + solid line (line graph)
+
+    if training_recall is not None:
+        plt.plot(epochs, training_recall, 'bo-', label='Training Recall')                   # blue circle + solid line (line graph)
+
+    if validation_accuracy is not None:
+        plt.plot(epochs, validation_accuracy, 'ro--', label='Validation Accuracy')          # cyan circle + dashed line (line graph)
+
+    if validation_precision is not None:
+        plt.plot(epochs, validation_precision, 'go--', label='Validation Precision')        # magenta circle + dashed line (line graph)
+
+    if validation_recall is not None:
+        plt.plot(epochs, validation_recall, 'bo--', label='Validation Recall')              # yellow circle + dashed line (line graph)
+
+    plt.title('Model Metrics')
+    plt.legend()
+
+    # --- Loss Graphs
+
+    plt.figure()
+
+    if training_loss is not None:
+        plt.plot(epochs, training_loss, 'ko-', label='Training Loss')                       # black circle + solid line (line graph)
+
+    if validation_loss is not None:
+        plt.plot(epochs, validation_loss, 'ko--', label='Validation Loss')                  # black circle + dashed line (line graph)
+
+    plt.title('Model Loss')
+    plt.legend()
+    
+    # ---
+
+    plt.show()
+
+def plot_test_graphs(number_of_epochs:int,
+**kwargs) -> None:
+    print('Plotting Test Graphs...')
+
+    # ---
+    
+    epochs = range(1, number_of_epochs+1)
+
+    model_accuracy = kwargs.get(test_accuracy, None)
+    model_precision = kwargs.get(test_precision, None)
+    model_recall = kwargs.get(test_recall, None)
+    model_F1score = kwargs.get(test_F1score, None)
+
+    model_loss = kwargs.get(test_loss, None)
+
+    # --- Metric Graphs
+
+    if model_accuracy is not None:
+        plt.plot(epochs, model_accuracy, 'ro-', label="Accuracy")       # red circle + solid line (line graph
+
+    if model_precision is not None:
+        plt.plot(epochs, model_precision, 'go-', label="Precision")     # green circle + solid line (line graph)
+
+    if model_recall is not None:
+        plt.plot(epochs, model_recall, 'bo-', label="Recall")           # blue circle + solid line (line graph)
+
+    if model_F1score is not None:
+        plt.plot(epochs, model_F1score, 'mo-', label="F1 Score")        # magenta circle + solid line (line graph)
+
+    plt.title('Model Metrics')
+    plt.legend()
+
+    # --- Loss Graph
+
+    plt.figure()
+
+    if model_loss is not None:
+        plt.plot(epochs, loss, 'ko-', label="Loss")                     # black circle + solid line (line graph)
+
+    plt.title("Model Loss")
+    plt.legend()
+
+    plt.show()
