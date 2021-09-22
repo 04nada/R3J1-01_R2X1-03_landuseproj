@@ -1,6 +1,5 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
-import keras_metrics as km
 from pathlib import Path
 
 #--- ----- CNN Parameters
@@ -62,9 +61,9 @@ SEED = 727                                          # consistent randomization f
 NUM_CLASSES = 6
 FOLDS = 5
 
-EPOCHS = 40                                         # filler number, just has to be more than enough to overfit before reaching the final epoch
-BATCH_SIZE = 32                                     # power of 2 for optimized CPU/GPU usage
-LEARNING_RATE = 0.1                                 # decimal power of 10
+EPOCHS = 15                                         # filler number, just has to be more than enough to overfit before reaching the final epoch
+BATCH_SIZE = 16                                     # power of 2 for optimized CPU/GPU usage
+LEARNING_RATE = 0.01                                # decimal power of 10
 
 # training set
 TRAIN_DATASET_DIRECTORY = Path.cwd() / 'train_imgdata' / 'trueclass_240x240_sortbyclass_actual'
