@@ -43,6 +43,8 @@ random.seed(mp.SEED)
 
 # ---
 
+### Training + Validation Sets, using Fold folders
+
 train_ds = tf.keras.preprocessing.image_dataset_from_directory(
   mp.TRAIN_DATASET_DIRECTORY.__str__(),
   validation_split = 0.2,
@@ -57,12 +59,12 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
   validation_split = 0.2,
   subset = "validation",
   seed = mp.SEED,
-  shuffle = True,
   image_size = (mp.img_HEIGHT, mp.img_WIDTH),
   batch_size = mp.BATCH_SIZE,
   label_mode = 'int',
-    
 )
+
+# ---
 
 
 ### CNN Training
@@ -131,7 +133,7 @@ for f in range(mp.FOLDS):
 
     # initialize model architecture parameters
     model.add(tf.keras.layers.Conv2D(
-        16, (9, 9),
+        64, (9, 9),
         activation=mp.ACTIVATION,
         input_shape=(mp.img_HEIGHT, mp.img_WIDTH, 3)
     ))
@@ -140,9 +142,9 @@ for f in range(mp.FOLDS):
     # continue applying convolutional layers while occasionally doing pooling
     model.add(tf.keras.layers.Conv2D(32, (7, 7), activation=mp.ACTIVATION) )
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(16, (5, 5), activation=mp.ACTIVATION) )
-    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(32, (5, 5), activation=mp.ACTIVATION))
+    model.add(tf.keras.layers.Conv2D(32, (5, 5), activation=mp.ACTIVATION) )
+    model.add(tf.keras.layers.MaxPooling2D((3, 3)))
+    model.add(tf.keras.layers.Conv2D(16, (5, 5), activation=mp.ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
     
     # flatten CNN model to a single array of values
@@ -186,9 +188,19 @@ for f in range(mp.FOLDS):
         verbose = 1
     )
 
+    accuracy = history.history['accuracy']
+    loss = history.history['loss']
+
+    model_funcs.plot_training_graphs(
+        mp.EPOCHS,
+        train_accuracy = accuracy,
+        train_loss = loss
+    )
+
     # ---
 
     models.append(model)
+    break
 
 ##    plt.subplot(212)
 ##    plt.title('Accuracy')
