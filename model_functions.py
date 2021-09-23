@@ -165,7 +165,6 @@ def augment_data(image:list, mask:list):
 #--- ----- Model Graphs
 
 def plot_training_graphs(number_of_epochs:int,
-*, train_accuracy:list, train_loss:list,
 **kwargs) -> None:
     print('Plotting Training Graphs...')
 
@@ -173,20 +172,21 @@ def plot_training_graphs(number_of_epochs:int,
     
     epochs = range(1, number_of_epochs+1)
 
-    training_accuracy = kwargs.get(train_accuracy, None)
-    training_precision = kwargs.get(train_precision, None)
-    training_recall = kwargs.get(train_recall, None)
+    training_accuracy = kwargs.get('train_accuracy', None)
+    training_precision = kwargs.get('train_precision', None)
+    training_recall = kwargs.get('train_recall', None)
 
-    validation_accuracy = kwargs.get(val_accuracy, None)
-    validation_precision = kwargs.get(val_precision, None)
-    validation_recall = kwargs.get(val_recall, None)
+    validation_accuracy = kwargs.get('val_accuracy', None)
+    validation_precision = kwargs.get('val_precision', None)
+    validation_recall = kwargs.get('val_recall', None)
 
-    training_loss = kwargs.get(train_loss, None)
-    validation_loss = kwargs.get(val_loss, None)
+    training_loss = kwargs.get('train_loss', None)
+    validation_loss = kwargs.get('val_loss', None)
 
     # --- Metric Graphs
 
     if training_accuracy is not None:
+        print(training_accuracy)
         plt.plot(epochs, training_accuracy, 'ro-', label='Training Accuracy')               # red circle + solid line (line graph)
 
     if training_precision is not None:
@@ -212,6 +212,7 @@ def plot_training_graphs(number_of_epochs:int,
     plt.figure()
 
     if training_loss is not None:
+        training_loss = list(training_loss)
         plt.plot(epochs, training_loss, 'ko-', label='Training Loss')                       # black circle + solid line (line graph)
 
     if validation_loss is not None:
@@ -232,12 +233,12 @@ def plot_test_graphs(number_of_epochs:int,
     
     epochs = range(1, number_of_epochs+1)
 
-    model_accuracy = kwargs.get(test_accuracy, None)
-    model_precision = kwargs.get(test_precision, None)
-    model_recall = kwargs.get(test_recall, None)
-    model_F1score = kwargs.get(test_F1score, None)
+    model_accuracy = kwargs.get('test_accuracy', None)
+    model_precision = kwargs.get('test_precision', None)
+    model_recall = kwargs.get('test_recall', None)
+    model_F1score = kwargs.get('test_F1score', None)
 
-    model_loss = kwargs.get(test_loss, None)
+    model_loss = kwargs.get('test_loss', None)
 
     # --- Metric Graphs
 
@@ -261,7 +262,7 @@ def plot_test_graphs(number_of_epochs:int,
     plt.figure()
 
     if model_loss is not None:
-        plt.plot(epochs, loss, 'ko-', label="Loss")                     # black circle + solid line (line graph)
+        plt.plot(epochs, model_loss, 'ko-', label="Loss")                     # black circle + solid line (line graph)
 
     plt.title("Model Loss")
     plt.legend()
