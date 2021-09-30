@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 #--- ----- Logging
 
@@ -74,28 +75,28 @@ class ReGenerator:
 # ---
 
 import random
-import cv2
+from PIL import Image
 
 def generate_rgb_image_from_path(image_path_string:str) -> 'matrix':
     # read image file data as a matrix of RGB pixels
-    image = cv2.imread(image_path_string)
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+    image = Image.open(image_path_string).convert('RGB')
+    image_matrix = np.array(image)
 
-    return image
+    return image_matrix
 
 def dataset_generator(dataset_path:str, label_names:list,
 *, normalize:bool=False, n=None, log_progress:bool=True) -> 'generator':
     t_print('=== Yield Dataset: from Directory - start ===', log_progress)
 
     # get dataset directory as Path object
-    dataset_path_obj = Path(dataset_path)
+    dataset_Path = Path(dataset_path)
 
     # get all class directories found inside the dataset directory
     # iterdir() to check all subpaths inside a Path object
-    dataclasses_paths = (i for i in dataset_path_obj.iterdir() if i.is_dir())
+    dataclasses_Paths = (i for i in dataset_Path.iterdir() if i.is_dir())
     
-    for sp,subpath_obj in enumerate(dataclasses_paths):
-        t_print('--- CD_D: ' + subpath_obj.name + ' - ' + str(sp) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
+    for sP,subPath in enumerate(dataclasses_Paths):
+        t_print('--- CD_D: ' + subPath.name + ' - ' + str(sp) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
 
         # get label number of current dataclass path
         image_dataclass_name = subpath_obj.name
