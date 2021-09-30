@@ -3,11 +3,13 @@ import main_params as mp
 
 # ---
 
-train_images = 'D:\\Users\\lwrnc\\Desktop\\LWRNC\\11 - A\\Research 2\\R2X1-03_landuseproj\\train_imgdata\\satellite_4800x4800_unsorted'
-train_labelses = 'D:\\Users\\lwrnc\\Desktop\\LWRNC\\11 - A\\Research 2\\R2X1-03_landuseproj\\train_imgdata\\colormap_20x20_unsorted'
+# create local copy of main_gridifier.py and 
 
-test_images = 'D:\\Users\\lwrnc\\Desktop\\LWRNC\\11 - A\\Research 2\\R2X1-03_landuseproj\\test_imgdata\\satellite_4800x4800_unsorted'
-test_labelses = 'D:\\Users\\lwrnc\\Desktop\\LWRNC\\11 - A\\Research 2\\R2X1-03_landuseproj\\test_imgdata\\colormap_20x20_unsorted'
+train_images = ''       # C:\\path\\to\\folder\\of\\large_satellite_images (Training Set)
+train_labelses = ''     # C:\\path\\to\\folder\\of\\colormaps (Training Set)
+
+test_images = ''        # C:\\path\\to\\folder\\of\\large_satellite_images (Test Set)
+test_labelses = ''      # C:\\path\\to\\folder\\of\\colormaps (Test Set)
 
 image_gridifier.generate_sorted_grid_image_files_by_directory(
     images_directory=test_images,
