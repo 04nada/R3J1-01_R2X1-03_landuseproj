@@ -1,0 +1,77 @@
+### Stage 1: _sortbyname
+
+# These folders are derived from the Google Earth naming convention
+
+# Because each person was assigned 10 satellite images (4800x4800) to map into a label colormap (20x20),
+	# they are thus noted as "_sortbyname"
+
+./*/satellite_4800x4800_sortbyname
+./*/colormap_20x20_sortbyname
+
+
+
+### Stage 2: _unsorted
+
+# In order for image_gridifier.py to be able to process the images and corresponding colormaps,
+	# the images must be removed from the "_sortbyname" folders and placed directly inside the "_unsorted" folders
+
+./*/satellite_4800x4800_unsorted
+./*/colormap_20x20_unsorted
+
+
+
+### Stage 3: _subsorted
+
+# image_gridifier.py takes each satellite image (4800x4800) and divides it into 400 different "subimages" (240x240)
+# Each of these 400 subimages is classified based on the colormap that corresponds with each satellite image
+
+# For each satellite image, its subimages are all stored in a folder with the same name as the satellite image;
+	# This satellite image folder contains subfolders for the different dataset labels,
+	# in which the subimages are sorted based on how they were classified
+
+# Thus, these images are noted to be "_subsorted"
+
+./*/trueclass_240x240_subsorted
+
+
+
+### Stage 4: _sortbyclass_full
+
+# tf.keras.preprocessing.image_dataset_from_directory() requires a dataset folder whose images are directly sorted by class in their respective subfolders
+# To have the dataset be sorted by class,
+	# take each satellite image folder in the "_subsorted" dataset and unwrap all of the class folders inside it
+
+# With this, the resulting folder will then be the full dataset sorted by class, noted as "_sortbyclass_full"
+
+./*/trueclass_240x240_sortbyclass_full
+
+
+
+### Stage 5: _sortbyclass_actual
+
+# Because of data imbalance in the training dataset, some classes (agricultural, harbor_seawater) are removed for the actual research
+
+# Thus, this is the "_actual" version of the "_sortbyclass" dataset
+
+./*/trueclass_240x240_sortbyclass_actual
+
+
+
+### Stage 6 : _sortbyclass_actual_folds
+
+# Going back to tf.keras.preprocessing.image_dataset_from_directory(),
+	# it requires separate folders for the training and validation datasets,
+	# and KFold Cross Validation would have to be implemented manually
+# Inside this folder, the /groups subfolder contains groups A-E
+# Inside this folder, the /folds subfolder contains folds 1-5
+	# ./_sortbyclass_actual_folds/folds/fold1
+		# /training: A
+		# /validation: BCDE
+	# ./_sortbyclass_actual_folds/folds/fold2
+		# /training: B
+		# /validation: ACDE
+	# ...and so on
+
+# Thus this is the "_folds" version of the "_sortbyclass_actual" dataset
+
+./*/trueclass_240x240_sortbyclass_actual_folds
