@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from image_gridifier import image_gridifier
 import main_params as mp
 
@@ -5,7 +7,7 @@ import main_params as mp
 
 # create local copy of main_gridifier.py and 
 
-train_images = ''       # C:\\path\\to\\folder\\of\\large_satellite_images (Training Set)
+train_images = (Path       # C:\\path\\to\\folder\\of\\large_satellite_images (Training Set)
 train_labelses = ''     # C:\\path\\to\\folder\\of\\colormaps (Training Set)
 
 test_images = ''        # C:\\path\\to\\folder\\of\\large_satellite_images (Test Set)

@@ -4,7 +4,7 @@ import model_functions as model_funcs
 import tensorflow as tf
 import tensorflow_addons as tfa
 from matplotlib import pyplot as plt
-from sklearn.model_selection import KFold
+
 import random
 import numpy as np
 
@@ -32,15 +32,11 @@ train_datapoints_regen = model_funcs.ReGenerator(
         'n': None} # mp.TRAIN_SAMPLES_PER_CLASS
 )
 
-# create k folds of random/shuffled training-validation splits
-# KFold follows the numpy seed
-kf = KFold(n_splits=mp.FOLDS, shuffle=True)
-
-# less memory-exhaustive list with the same "length" as the datapoints generator
-train_datapoints_length = train_datapoints_regen.length()
-train_datapoints_filler_list = [i for i in range(train_datapoints_length)]
-# kf.split only returns the randomized indices, not the actual sublists, as a generator of array pairs
-train_datapoints_fold_indices = kf.split(train_datapoints_filler_list)
+# partition number of datapoints into k groups, for k folds
+train_datapoints_fold_indices = model_funcs.random_index_partition(
+    mp.FOLDS,
+    train_datapoints_regen.length()
+)
 
 
 ### CNN Training
@@ -64,8 +60,15 @@ for f in range(mp.FOLDS):
 
     # ---
     
-    # get indices of training data and validation data for the current fold
-    current_trainset_indices, current_valset_indices = next(train_datapoints_fold_indices)
+    # get indices of training set and validation set for the current fold
+    current_trainset_indices = []
+    current_valset_indices = []
+
+    for i,group in enumerate(train_datapoints_fold_indices):
+        if i == f:
+            current_valset_indices.extend(group)
+        else:
+            current_trainset_indices.extend(group)
 
     # get training set datapoints from randomly generated indices
     current_trainset_points = model_funcs.ReGenerator(

@@ -27,7 +27,7 @@ def print_image(image:list) -> None:
     for row_of_pixels in image:
         print(row_of_pixels)
 
-#--- ----- File Processing
+# --- ----- File Processing
 
 from pathlib import Path
 
@@ -77,64 +77,66 @@ class ReGenerator:
 import random
 from PIL import Image
 
-def generate_rgb_image_from_path(image_path_string:str) -> 'matrix':
+def generate_rgb_image_from_path(image_filepath:str) -> 'matrix':
     # read image file data as a matrix of RGB pixels
-    image = Image.open(image_path_string).convert('RGB')
+    image = Image.open(image_filepath).convert('RGB')
     image_matrix = np.array(image)
 
     return image_matrix
 
-def dataset_generator(dataset_path:str, label_names:list,
+def dataset_generator(dataset_dirpath:str, label_names:list,
 *, normalize:bool=False, n=None, log_progress:bool=True) -> 'generator':
     t_print('=== Yield Dataset: from Directory - start ===', log_progress)
-
+    
     # get dataset directory as Path object
-    dataset_Path = Path(dataset_path)
+    dataset_dir_path = Path(dataset_dirpath)
 
     # get all class directories found inside the dataset directory
     # iterdir() to check all subpaths inside a Path object
-    dataclasses_Paths = (i for i in dataset_Path.iterdir() if i.is_dir())
+    class_dir_paths = (i for i in dataset_dir_path.iterdir() if i.is_dir())
     
-    for sP,subPath in enumerate(dataclasses_Paths):
-        t_print('--- CD_D: ' + subPath.name + ' - ' + str(sp) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
+    for c_d_p,class_dir_path in enumerate(class_dir_paths):
+        t_print('--- CD_D: ' + class_dir_path.name + ' - ' + str(c_d_p) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
 
         # get label number of current dataclass path
-        image_dataclass_name = subpath_obj.name
-        label_number = label_names.index(image_dataclass_name)
+        class_name = class_dir_path.name
+        label_number = label_names.index(class_name)
 
         # generate each datapoint individually
         # "yield from" is used to keep yielding values from another generator
-        subpath = subpath_obj.__str__()
-        yield from yield_datapoints_rgb(subpath, label_number, normalize=normalize, n=n)
+        class_dirpath = class_dir_path.__str__()
+        
+        yield from yield_datapoints_rgb(class_dirpath, label_number, normalize=normalize, n=n)
 
     t_print('--- CD_D: ' + str(len(label_names)) + ' of ' + str(len(label_names)) + ' classes finished---', log_progress)
 
     t_print('=== Yield Dataset: from Directory - finish ===', log_progress)
 
-def yield_datapoints_rgb(image_directory:str, label_number:int,
+def yield_datapoints_rgb(image_dirpath:str, label_number:int,
 *, normalize:bool=False, n=None) -> 'generator':
     # get image directory as Path object
-    image_directory_obj = Path(image_directory)
+    image_dir_path = Path(image_dirpath)
 
     # get all valid image files inside the given image directory
     # use the ReGenerator class to get length of generator
-    image_files = ReGenerator(
-        lambda : (subpath for subpath in image_directory_obj.iterdir() if subpath.is_file() and subpath.suffix in valid_image_extensions)
+    image_file_paths = ReGenerator(
+        lambda : (subfile_path for subfile_path in image_dir_path.iterdir() if subfile_path.is_file() and subfile_path.suffix in valid_image_extensions)
     )
     
     # if n is specified, randomly select n indices from the subfiles
     if n is not None:
-        random_indices = random.sample(range(image_files.length()), n)
+        random_indices = random.sample(range(image_file_paths.length()), n)
 
     # create an (image, label) datapoint for each valid image file obtained
-    for i_f,image_file in enumerate(image_files.gen()):
+    for i_f_p,image_file_path in enumerate(image_file_paths.gen()):
         # if n is specified, do not yield an image if
         #     it is not within the randomly generated indices
-        if n is not None and i_f not in random_indices:
+        if n is not None and i_f_p not in random_indices:
             continue
 
         # convert image filepath from Path object into its string
-        image = generate_rgb_image_from_path(image_file.__str__())
+        image_filepath = image_file_path.__str__()
+        image = generate_rgb_image_from_path(image_filepath)
 
         # if normalize is True, pixel values get converted from [0,255] to [0,1]
         if normalize:
@@ -269,3 +271,32 @@ def plot_test_graphs(number_of_epochs:int,
     plt.legend()
 
     plt.show()
+
+# --- ----- Random Index Partitioning
+
+# standalone KFold implementation
+# values determined by the 'random' package
+def random_index_partition(num_groups, num_elements):
+    indices = []
+    
+    unused_indices = [i for i in range(num_elements)]
+    random.shuffle(unused_indices)
+
+    # check how many (E) excess elements there will be after gett
+    excess_elements = num_elements % num_groups
+
+    for i in range(num_groups):
+        current_num_elements = num_elements // num_groups
+
+        # if there are E excess elements from modulo, then the first E groups will have an extra element
+        if i < excess_elements:
+            current_num_elements += 1
+
+        # ---
+    
+        chosen_indices = unused_indices[0:current_num_elements]
+        
+        indices.append(chosen_indices)
+        unused_indices = unused_indices[current_num_elements:]
+
+    return indices
