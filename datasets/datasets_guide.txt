@@ -5,18 +5,26 @@
 # Because each person was assigned 10 satellite images (4800x4800) to map into a label colormap (20x20),
 	# they are thus noted as "_sortbyname"
 
+# ---
 ./*/satellite_4800x4800_sortbyname
+	/Metro XXXXX MGRS - SURNAME
+	...
 ./*/colormap_20x20_sortbyname
+	/Metro XXXXX MGRS - SURNAME
+	...
 
 
+# --- -----
 
 ### Stage 2: _unsorted
 
 # In order for image_gridifier.py to be able to process the images and corresponding colormaps,
 	# the images must be removed from the "_sortbyname" folders and placed directly inside the "_unsorted" folders
 
+# ---
 ./*/satellite_4800x4800_unsorted
 ./*/colormap_20x20_unsorted
+
 
 
 
@@ -31,9 +39,22 @@
 
 # Thus, these images are noted to be "_subsorted"
 
+# ---
 ./*/trueclass_240x240_subsorted
+	/Metro XXXXXX MGRS - (XX,YY) - SURNAME
+		/agricultural
+		/commercial
+		/harbor_seawater
+		/industrial
+		/institutional
+		/recreational
+		/residential
+		/transport
+	...
+		...
 
 
+# --- -----
 
 ### Stage 4: _sortbyclass_full
 
@@ -43,9 +64,19 @@
 
 # With this, the resulting folder will then be the full dataset sorted by class, noted as "_sortbyclass_full"
 
+# ---
 ./*/trueclass_240x240_sortbyclass_full
+	/agricultural
+	/commercial
+	/harbor_seawater
+	/industrial
+	/institutional
+	/recreational
+	/residential
+	/transport
 
 
+# --- -----
 
 ### Stage 5: _sortbyclass_actual
 
@@ -53,25 +84,85 @@
 
 # Thus, this is the "_actual" version of the "_sortbyclass" dataset
 
+# ---
 ./*/trueclass_240x240_sortbyclass_actual
+	/commercial
+	/industrial
+	/institutional
+	/recreational
+	/residential
+	/transport
 
 
+# --- -----
 
-### Stage 6 : _sortbyclass_actual_folds
+### Stage 6: _sortbyclass_actual2
+
+# From the "_actual" dataset, some manual image reclassification may still be done further
+# This is equivalent to "forking" the dataset sorted by class
+
+# ---
+./*/trueclass_240x240_sortbyclass_actual2
+	/commercial
+	/industrial
+	/institutional
+	/recreational
+	/residential
+	/transport
+
+
+# --- -----
+
+### Stage 7 : _sortbyclass_actual_folds / _sortbyclass_actual2_folds
 
 # Going back to tf.keras.preprocessing.image_dataset_from_directory(),
 	# it requires separate folders for the training and validation datasets,
 	# and KFold Cross Validation would have to be implemented manually
 # Inside this folder, the /groups subfolder contains groups A-E
 # Inside this folder, the /folds subfolder contains folds 1-5
-	# ./_sortbyclass_actual_folds/folds/fold1
-		# /training: A
-		# /validation: BCDE
-	# ./_sortbyclass_actual_folds/folds/fold2
-		# /training: B
-		# /validation: ACDE
-	# ...and so on
 
 # Thus this is the "_folds" version of the "_sortbyclass_actual" dataset
 
+# ---
 ./*/trueclass_240x240_sortbyclass_actual_folds
+	/folds
+		/fold1
+			/training	# Groups BCDE
+				/commercial
+				/industrial
+				/institutional
+				/recreational
+				/residential
+				/transport
+			/validation	# Group A
+				/commercial
+				/industrial
+				/institutional
+				/recreational
+				/residential
+				/transport
+		/fold2
+			/training	# Groups ACDE
+				...
+			/validation	# Group B
+				...
+		...
+			...
+		/fold5
+			/training	# Groups ABCD
+				...
+			/validation	# Group E
+				...
+	/groups
+		/A
+			/commercial
+			/industrial
+			/institutional
+			/recreational
+			/residential
+			/transport
+		/B
+			...
+		...
+		/E
+			...
