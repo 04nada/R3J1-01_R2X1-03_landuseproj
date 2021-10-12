@@ -185,6 +185,14 @@ for f in range(mp.FOLDS):
         validation_data = val_ds,
         epochs = mp.EPOCHS,
         batch_size = mp.BATCH_SIZE,
+        callbacks = [
+            tf.keras.callbacks.EarlyStopping(
+                monitor = 'val_loss',
+                patience = 1,
+                verbose = 1
+            ),
+            tf.keras.callbacks.History()
+        ],
         verbose = 1
     )
 
