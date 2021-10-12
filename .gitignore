@@ -2,6 +2,7 @@
 
 /datasets/*/trueclass_240x240_sortbyclass_actual/*/*.png
 /datasets/*/trueclass_240x240_sortbyclass_actual2/*/*.png
+/datasets/*/trueclass_240x240_sortbyclass_actual_GROUPS/*/*/*.png
 /datasets/*/trueclass_240x240_sortbyclass_full/*/*.png
 /datasets/*/trueclass_240x240_subsorted/*/*/*.png
 
