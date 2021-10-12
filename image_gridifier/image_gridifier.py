@@ -2,52 +2,41 @@ import numpy as np
 import math
 
 from PIL import Image
-import cv2
 from pathlib import Path
 import shutil
 
-# ---
-
-valid_image_extensions = [
-    '.jpg',
-    '.jpeg',
-    '.png',
-]
+sys.path.append(str(Path.cwd().parent))
+import model_functions as model_funcs
 
 # --- -----
 
 ### Sorted Image Gridifier for all images and labels in their respective directories
 
 def generate_sorted_grid_image_files_by_directory(start_index=0, end_index=math.inf,
-*, images_directory:str, labelses_directory:str,
+*, image_folder_dirpath:str, colormap_folder_dirpath:str,
 subimage_height:int, subimage_width:int, lookup_colors:dict, label_names:int):
     print('=== Sorted Image Gridifier: by Directory - start ===\n')
     
-    # rename keyword parameter variables
-    images_folder_dirstr = images_directory
-    labelses_folder_dirstr = labelses_directory
-    
-    # convert path strings to pathlib objects
-    images_folder_directory = Path(images_folder_dirstr)
-    labelses_folder_directory = Path(labelses_folder_dirstr)
+    image_folder_dir_path = Path(image_folder_dirpath)
+    colormap_folder_dir_path = Path(colormap_folder_dirpath)
 
-    images_folder_filepaths = []
-    labelses_folder_filepaths = []
+    image_file_paths = []
+    colormap_file_paths = []
         
     # search across all image files
-    for image_filepath in images_folder_directory.iterdir():
-        if image_filepath.is_file() and image_filepath.suffix in valid_image_extensions:
+    for image_file_path in image_folder_dir_path.iterdir():
+        if image_file_path.is_file() and image_file_path.suffix in model_funcs.VALID_IMAGE_EXTENSIONS:
             # store all image filepaths from each name folder
             images_folder_filepaths.append(image_filepath)
 
     # search across all name folders             
-    for labels_filepath in labelses_folder_directory.iterdir():
-        if labels_filepath.is_file() and labels_filepath.suffix in valid_image_extensions:
+    for colormap_file_path in colormap_folder_dir_path.iterdir():
+        if colormap_file_path.is_file() and colormap_file_path.suffix in model_funcs.VALID_IMAGE_EXTENSIONS:
             # store all image filepaths from each name folder
-            labelses_folder_filepaths.append(labels_filepath)
+            colormap_file_paths.append(labels_filepath)
 
     # run Sorted Image Gridifier for each imagepath-labelspath pair in the specified directories                      
-    for i, (imgpath, lblspath) in enumerate(zip(images_folder_filepaths, labelses_folder_filepaths)):
+    for i, (image_file_path, colormap_file_path) in enumerate(zip(image_file_paths, colormap_file_paths)):
         if i < start_index:
             continue
 
@@ -57,17 +46,17 @@ subimage_height:int, subimage_width:int, lookup_colors:dict, label_names:int):
         print('--- SIG_D: ' + str(i) + ' of ' + str(len(images_folder_filepaths)) + ' images completed ---\n')
 
         generate_sorted_grid_image_files(
-            subimage_height=subimage_height,
-            subimage_width=subimage_width,
-            image_abspath=imgpath.__str__(),
-            labels_abspath=lblspath.__str__(),
-            lookup_colors=lookup_colors,
-            label_names=label_names
+            subimage_height = subimage_height,
+            subimage_width = subimage_width,
+            image_abspath = str(image_file_path),
+            labels_abspath = str(colormap_file_path),
+            lookup_colors = lookup_colors,
+            label_names = label_names
         )
 
         print('')
         
-    print('--- SIG_D: Image ' + str(len(images_folder_filepaths)) + ' of ' + str(len(images_folder_filepaths)) + '---\n')
+    print('--- SIG_D: Image ' + str(len(image_file_paths)) + ' of ' + str(len(image_file_paths)) + '---\n')
         
     print('=== Sorted Image Gridifier: by Directory - finish ===')
 
@@ -75,7 +64,7 @@ subimage_height:int, subimage_width:int, lookup_colors:dict, label_names:int):
 ### Generate Subimages from gridify_image(), unsorted all into a folder
 
 def generate_unsorted_grid_image_files(is_last_row_bigger=False, is_last_column_bigger=False,
-*, subimage_height:int, subimage_width:int, image_abspath:str):
+*, subimage_height:int, subimage_width:int, image_filepath:str):
     # creates a folder containing subimages that would have been generated
     #       from gridify_image() with the same parameters
     # this function accepts <image_abspath>, instead of an image matrix
@@ -86,29 +75,30 @@ def generate_unsorted_grid_image_files(is_last_row_bigger=False, is_last_column_
 
     ### Instantiate the source image variables
 
-    src_image_abspath = image_abspath
-    src_image_directory = Path(src_image_abspath).parent
-    src_image_filename = Path(src_image_abspath).stem
+    image_dir_path = Path(image_filepath).parent
+    image_filename = Path(image_filepath).stem
 
     # create empty folder with same name as src_image, on the same level
-    subimage_directory = src_image_directory / src_image_filename
+    subimage_directory = image_dir_path / image_filename
 
     print('- for: ' + src_image_filename)
+    # if folder already exists, delete it
     if subimage_directory.exists():
-        # if folder already exists, delete it
         shutil.rmtree(subimage_directory)
         
     subimage_directory.mkdir()
 
     # ---
 
-    ### Gridify the source image
+    ### Process and gridify the source image
 
-    # load src_image as numpy array
-    src_image = cv2.imread(src_image_abspath)
-    src_image = cv2.cvtColor(src_image, cv2.COLOR_BGR2RGB)
+    src_image = generate_rgb_image_from_path(image_filepath)
     
-    gridified_image = gridify_image(src_image, grid_height, grid_width, is_last_row_bigger, is_last_column_bigger)
+    gridified_image = gridify_image(
+        src_image,
+        grid_height, grid_width,
+        is_last_row_bigger, is_last_column_bigger
+    )
 
     # ---
 
@@ -140,7 +130,7 @@ def generate_unsorted_grid_image_files(is_last_row_bigger=False, is_last_column_
 ### Generate Subimages from gridify_image(), sorted by class/label into a folder
   
 def generate_sorted_grid_image_files(is_last_row_bigger=False, is_last_column_bigger=False,
-*, subimage_height:int, subimage_width:int, image_abspath:str, labels_abspath:str, lookup_colors:dict, label_names:list):
+*, subimage_height:int, subimage_width:int, image_filepath:str, colormap_filepath:str, lookup_colors:dict, label_names:list):
     # also uses the <labels_abspath>, <lookup_colors>, and <label_names> keywords
     #       to indicate the image with the corresponding label colors
     
@@ -150,41 +140,46 @@ def generate_sorted_grid_image_files(is_last_row_bigger=False, is_last_column_bi
 
     ### Instantiate the source image variables
 
-    src_image_abspath = image_abspath
-    src_image_directory = Path(src_image_abspath).parent
-    src_image_filename = Path(src_image_abspath).stem
+    image_dir_path = Path(image_filepath).parent
+    image_filename = Path(image_filepath).stem
 
     # create empty folder with same name as src_image, on the same level
-    subimage_directory = src_image_directory / src_image_filename
+    subimage_dir_path = image_dir_path / image_filename
+
+    # ---
+
+    ### Create image 
 
     print('- for: ' + src_image_filename)
-    if subimage_directory.exists():
-        # if folder already exists, delete it, to force empty folder
-        shutil.rmtree(subimage_directory)
+
+    # if folder already exists, delete it, to force empty folder
+    if subimage_dir_path.exists():
+        shutil.rmtree(subimage_dir_path)
         
-    subimage_directory.mkdir()
+    subimage_dir_path.mkdir()
 
     # create empty subfolder for each class/label
     for label in label_names:
-        class_directory = subimage_directory / label
+        class_directory = subimage_dir_path / label
 
-        if not class_directory.exists():
-            class_directory.mkdir()
+        class_directory.mkdir()
     
     # ---
 
     ### Process and gridify the source image
     
-    src_image = cv2.imread(src_image_abspath)
-    src_image = cv2.cvtColor(src_image, cv2.COLOR_BGR2RGB)
+    src_image = generate_rgb_image_from_path(image_filepath)
 
-    gridified_image = gridify_image(src_image, subimage_height, subimage_width, is_last_row_bigger, is_last_column_bigger)
+    gridified_image = gridify_image(
+        src_image,
+        subimage_height, subimage_width,
+        is_last_row_bigger, is_last_column_bigger
+    )
 
 
-    ### Process the labels image
+    ### Process the colormap image
     
-    labels_image = cv2.imread(labels_abspath)
-    labels_image = cv2.cvtColor(labels_image, cv2.COLOR_BGR2RGB)
+    labels_image = generate_rgb_image_from_path(colormap_filepath)
     
     # ---
     
@@ -198,17 +193,17 @@ def generate_sorted_grid_image_files(is_last_row_bigger=False, is_last_column_bi
             class_name = label_names[class_number]
             
             # append LETTERnumber code for each subimage
-            filename = (src_image_filename
+            subimage_filename = (src_image_filename
                 + ' '
                 + chr(65+gi_c)          # column letter, A-?
                 + str(gi_r+1)           # row number, 1-?
             )
 
-            file_abspath = subimage_directory / class_name / filename
+            subimage_file_path = (subimage_dir_path / class_name / filename).with_suffix('.png')
             
             # save subimage in previously made folder
-            current_image = Image.fromarray(np.array(subimage).astype(np.uint8))
-            current_image.save(file_abspath.with_suffix('.png'), format='png')
+            subimage_obj = Image.fromarray(np.array(subimage).astype(np.uint8))
+            subimage_obj.save(subimage_file_path, format='png')
 
     print('-- SIG: Row ' + str(len(gridified_image)) + ' of ' + str(len(gridified_image)) + ' --')
         
