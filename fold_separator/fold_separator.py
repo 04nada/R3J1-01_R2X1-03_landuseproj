@@ -2,10 +2,14 @@ import numpy as np
 import random
 
 import sys
+from PIL import Image
 from pathlib import Path
+import shutil
 
-sys.path.append(Path.cwd().parent)
+# import parent folder
+sys.path.append(str(Path.cwd().parent))
 import model_functions as model_funcs
+import main_params as mp
 
 def set_seed(seed:int):
     np.random.seed(seed)
@@ -13,39 +17,62 @@ def set_seed(seed:int):
 
 # standalone KFold implementation
 # values determined by the 'random' package
-def random_index_partition(num_groups, num_elements):
-    indices = []
+
+def create_separate_dataset_groups(number_of_groups,
+*, dataset_dirpath:str, label_names:list, indices:list, output_dirpath:str=None):
+
+    print('== Create Separate Dataset Groups - start ==')
+
+    dataset_regenerator = model_funcs.ReGenerator(
+        model_funcs.dataset_generator,
+        (dataset_dirpath, label_names),
+        {'normalize': True}
+    )
+
+    dataset = dataset_regenerator.gen()
+
+    # ---
+
+    # define default output directory based on dataset folder name,
+    #     if output directory is not explicitly given
+    if output_dirpath == None:
+        output_dirpath = dataset_dirpath + '_GROUPS'
     
-    unused_indices = [i for i in range(num_elements)]
-    random.shuffle(unused_indices)
+    output_dir_path = Path(output_dirpath)
+    
+    if output_dir_path.exists():
+        shutil.rmtree(output_dir_path)
+    output_dir_path.mkdir()
 
-    # check how many (E) excess elements there will be after gett
-    excess_elements = num_elements % num_groups
+    for g in range(number_of_groups):
+        current_group_folder = 'group' + str(g+1)
+        current_group_dir_path = output_dir_path / current_group_folder
+        current_group_dir_path.mkdir()
 
-    for i in range(num_groups):
-        current_num_elements = num_elements // num_groups
+        for label in label_names:
+            group_class_dir_path = current_group_dir_path / label
+            group_class_dir_path.mkdir()
+    
+    # ---
 
-        # if there are E excess elements from modulo, then the first E groups will have an extra element
-        if i < excess_elements:
-            current_num_elements += 1
+    for d,datapoint in enumerate(dataset):
+        image = datapoint[0]
+        label_number = datapoint[1]
+        label_name = label_names[label_number]
 
         # ---
-    
-        chosen_indices = unused_indices[0:current_num_elements]
+
+        for i,index_list in enumerate(indices):
+            if d in index_list:
+                group_number = i+1
+                group_name = 'group' + str(group_number)
+                break
+
+        # ---
+
+        image_file_path = output_dir_path / group_name / label_name / Path(str(d)+'.png')
         
-        indices.append(chosen_indices)
-        unused_indices = unused_indices[current_num_elements:]
+        image_obj = Image.fromarray(np.array(image).astype(np.uint8))
+        image_obj.save(image_file_path, format='png')
 
-    return indices
-
-def funcy(
-*, dataset_dirpath:str, label_names:list, dataset:'generator'):
-    dataset_dir_path = Path(dataset_dirpath)
-
-    class_dir_paths = (i for i in dataset_Path.iterdir() if i.is_dir())
-
-    
-
-    
-
-
+    print('== Create Separate Dataset Groups - end ==')
