@@ -31,7 +31,7 @@ def print_image(image:list) -> None:
 
 from pathlib import Path
 
-valid_image_extensions = [
+VALID_IMAGE_EXTENSIONS = [
     '.jpg',
     '.jpeg',
     '.png',
@@ -120,7 +120,7 @@ def yield_datapoints_rgb(image_dirpath:str, label_number:int,
     # get all valid image files inside the given image directory
     # use the ReGenerator class to get length of generator
     image_file_paths = ReGenerator(
-        lambda : (subfile_path for subfile_path in image_dir_path.iterdir() if subfile_path.is_file() and subfile_path.suffix in valid_image_extensions)
+        lambda : (subfile_path for subfile_path in image_dir_path.iterdir() if subfile_path.is_file() and subfile_path.suffix in VALID_IMAGE_EXTENSIONS)
     )
     
     # if n is specified, randomly select n indices from the subfiles
