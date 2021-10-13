@@ -2,6 +2,8 @@ import tensorflow as tf
 import tensorflow_addons as tfa
 from pathlib import Path
 
+ROOT_DIRECTORY = Path.cwd()
+
 #--- ----- CNN Parameters
 
 ### image parameters
@@ -61,12 +63,28 @@ SEED = 727                                          # consistent randomization f
 NUM_CLASSES = 6
 FOLDS = 5
 
-EPOCHS = 15                                         # filler number, just has to be more than enough to overfit before reaching the final epoch
+EPOCHS = 3                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
 BATCH_SIZE = 16                                     # power of 2 for optimized CPU/GPU usage
 LEARNING_RATE = 0.01                                # decimal power of 10
 
 # training set
-TRAIN_DATASET_DIRECTORY = Path.cwd() / 'datasets' / 'train_images' / 'trueclass_240x240_sortbyclass_actual'
+TRAIN_DATASET_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'datasets'
+    / 'train_images'
+    / 'trueclass_240x240_sortbyclass_actual'
+)
+TRAIN_DATASET_DIRECTORIES = [
+    str(
+        ROOT_DIRECTORY
+        / 'datasets'
+        / 'train_images'
+        / 'trueclass_240x240_sortbyclass_actual_folds'
+        / 'folds'
+        / ('fold'+str(i+1))
+    )
+    for i in range(FOLDS)
+]
 
 TRAIN_SAMPLES_PER_CLASS = 400
 TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS * NUM_CLASSES
@@ -80,7 +98,12 @@ TRAIN_STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE    # floor division
 CHOSEN_FOLD = 1
 
 # test set
-TEST_DATASET_DIRECTORY = Path.cwd() / 'datasets' / 'test_images' / 'trueclass_240x240_sortbyclass_actual'
+TEST_DATASET_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'datasets'
+    / 'test_images'
+    / 'trueclass_240x240_sortbyclass_actual'
+)
 
 TEST_SAMPLES_PER_CLASS = 1
 TEST_SIZE = TEST_SAMPLES_PER_CLASS * NUM_CLASSES
