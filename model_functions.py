@@ -84,6 +84,18 @@ def generate_rgb_image_from_path(image_filepath:str) -> 'matrix':
 
     return image_matrix
 
+def get_dataset_size(dataset_dirpath:str):
+    dataset_dir_path = Path(dataset_dirpath)
+
+    dataset_size = 0
+
+    # count all images in dataset folder recursively
+    for sub_path in dataset_dir_path.rglob('*'):
+        if sub_path.is_file() and sub_path.suffix in VALID_IMAGE_EXTENSIONS:
+            dataset_size += 1
+
+    return dataset_size
+
 def dataset_generator(dataset_dirpath:str, label_names:list,
 *, normalize:bool=False, n=None, log_progress:bool=True) -> 'generator':
     t_print('=== Yield Dataset: from Directory - start ===', log_progress)
