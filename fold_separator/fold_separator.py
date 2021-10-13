@@ -11,12 +11,11 @@ sys.path.append(str(Path.cwd().parent))
 import model_functions as model_funcs
 import main_params as mp
 
+# --- -----
+
 def set_seed(seed:int):
     np.random.seed(seed)
     random.seed(seed)
-
-# standalone KFold implementation
-# values determined by the 'random' package
 
 def create_separate_dataset_groups(number_of_groups,
 *, dataset_dirpath:str, label_names:list, indices:list, output_dirpath:str=None):
@@ -25,8 +24,7 @@ def create_separate_dataset_groups(number_of_groups,
 
     dataset_regenerator = model_funcs.ReGenerator(
         model_funcs.dataset_generator,
-        (dataset_dirpath, label_names),
-        {'normalize': True}
+        (dataset_dirpath, label_names)
     )
 
     dataset = dataset_regenerator.gen()
@@ -59,7 +57,7 @@ def create_separate_dataset_groups(number_of_groups,
         image = datapoint[0]
         label_number = datapoint[1]
         label_name = label_names[label_number]
-
+        
         # ---
 
         for i,index_list in enumerate(indices):
