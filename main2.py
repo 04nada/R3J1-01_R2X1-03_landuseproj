@@ -4,7 +4,6 @@ import model_functions as model_funcs
 import tensorflow as tf
 import tensorflow_addons as tfa
 from matplotlib import pyplot as plt
-from sklearn.model_selection import KFold
 import random
 import numpy as np
 
@@ -36,30 +35,32 @@ random.seed(mp.SEED)
 
 ### Training + Validation Sets, using Fold folders
 
-train_ds = tf.keras.preprocessing.image_dataset_from_directory(
-  mp.TRAIN_DATASET_DIRECTORY.__str__(),
-  validation_split = 0.2,
-  subset = "training",
-  seed = mp.SEED,
-  image_size = (mp.img_HEIGHT, mp.img_WIDTH),
-  batch_size = mp.BATCH_SIZE
-)
-
-val_ds = tf.keras.preprocessing.image_dataset_from_directory(
-  mp.TRAIN_DATASET_DIRECTORY.__str__(),
-  validation_split = 0.2,
-  subset = "validation",
-  seed = mp.SEED,
-  image_size = (mp.img_HEIGHT, mp.img_WIDTH),
-  batch_size = mp.BATCH_SIZE,
-  label_mode = 'int',
-)
+##train_ds = tf.keras.preprocessing.image_dataset_from_directory(
+##  mp.TRAIN_DATASET_DIRECTORY.__str__(),
+##  validation_split = 0.2,
+##  subset = "training",
+##  seed = mp.SEED,
+##  image_size = (mp.img_HEIGHT, mp.img_WIDTH),
+##  batch_size = mp.BATCH_SIZE
+##)
+##
+##val_ds = tf.keras.preprocessing.image_dataset_from_directory(
+##  mp.TRAIN_DATASET_DIRECTORY.__str__(),
+##  validation_split = 0.2,
+##  subset = "validation",
+##  seed = mp.SEED,
+##  image_size = (mp.img_HEIGHT, mp.img_WIDTH),
+##  batch_size = mp.BATCH_SIZE,
+##  label_mode = 'int',
+##)
 
 train_datasets = [
     tf.keras.preprocessing.image_dataset_from_directory(
         str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'training'),
         image_size = (mp.img_HEIGHT, mp.img_WIDTH),
         batch_size = mp.BATCH_SIZE
+    ).prefetch(
+        buffer_size = tf.data.experimental.AUTOTUNE
     ) for f in range(mp.FOLDS)
 ]
 
@@ -68,6 +69,8 @@ val_datasets = [
         str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'validation'),
         image_size = (mp.img_HEIGHT, mp.img_WIDTH),
         batch_size = mp.BATCH_SIZE
+    ).prefetch(
+        buffer_size = tf.data.experimental.AUTOTUNE
     ) for f in range(mp.FOLDS)
 ]
 
