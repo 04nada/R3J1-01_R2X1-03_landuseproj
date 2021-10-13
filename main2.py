@@ -31,15 +31,6 @@ random.seed(mp.SEED)
 ##        'n': None} # mp.TRAIN_SAMPLES_PER_CLASS
 ##)
 ##
-### create k folds of random/shuffled training-validation splits
-### KFold follows the numpy seed
-##kf = KFold(n_splits=mp.FOLDS, shuffle=True)
-##
-### less memory-exhaustive list with the same "length" as the datapoints generator
-##train_datapoints_length = train_datapoints_regen.length()
-##train_datapoints_filler_list = [i for i in range(train_datapoints_length)]
-### kf.split only returns the randomized indices, not the actual sublists, as a generator of array pairs
-##train_datapoints_fold_indices = kf.split(train_datapoints_filler_list)
 
 # ---
 
@@ -63,6 +54,22 @@ val_ds = tf.keras.preprocessing.image_dataset_from_directory(
   batch_size = mp.BATCH_SIZE,
   label_mode = 'int',
 )
+
+train_datasets = [
+    tf.keras.preprocessing.image_dataset_from_directory(
+        str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'training'),
+        image_size = (mp.img_HEIGHT, mp.img_WIDTH),
+        batch_size = mp.BATCH_SIZE
+    ) for f in range(mp.FOLDS)
+]
+
+val_datasets = [
+    tf.keras.preprocessing.image_dataset_from_directory(
+        str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'validation'),
+        image_size = (mp.img_HEIGHT, mp.img_WIDTH),
+        batch_size = mp.BATCH_SIZE
+    ) for f in range(mp.FOLDS)
+]
 
 # ---
 
@@ -181,8 +188,8 @@ for f in range(mp.FOLDS):
     # also setting other parameters for how the model runs, namely epochs and batch size
     print('--- FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - model.fit() ---')
     history = model.fit(
-        train_ds,
-        validation_data = val_ds,
+        train_datasets[f],
+        validation_data = val_datasets[f],
         epochs = mp.EPOCHS,
         batch_size = mp.BATCH_SIZE,
         callbacks = [
