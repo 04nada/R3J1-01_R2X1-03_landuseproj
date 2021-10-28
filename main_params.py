@@ -86,6 +86,18 @@ TRAIN_DATASET_DIRECTORIES = [
     for i in range(FOLDS)
 ]
 
+TRAIN_DATASET_DIRECTORIES2 = [
+    str(
+        ROOT_DIRECTORY
+        / 'datasets'
+        / 'train_images'
+        / 'trueclass_240x240_sortbyclass_actual2_folds'
+        / 'folds'
+        / ('fold'+str(i+1))
+    )
+    for i in range(FOLDS)
+]
+
 TRAIN_SAMPLES_PER_CLASS = 400
 TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS * NUM_CLASSES
 TRAIN_STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE    # floor division
