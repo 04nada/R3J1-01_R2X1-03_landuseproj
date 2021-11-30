@@ -1,14 +1,18 @@
 # temporarily exclude datasets combined by class
 
 /datasets/*/trueclass_240x240_sortbyclass_actual/*/*.png
-/datasets/*/trueclass_240x240_sortbyclass_actual_GROUPS/*/*/*.png
-/datasets/*/trueclass_240x240_sortbyclass_actual_folds/*/*/*/*.png
-/datasets/*/trueclass_240x240_sortbyclass_actual_folds/*/*/*/*/*.png
+/datasets/*/trueclass_240x240_sortbyclass_actual_folds/folds/*/*/*/*.png
+/datasets/*/trueclass_240x240_sortbyclass_actual_folds/groups/*/*/*.png
+
 /datasets/*/trueclass_240x240_sortbyclass_actual2/*/*.png
+/datasets/*/trueclass_240x240_sortbyclass_actual2_folds/folds/*/*/*/*.png
+/datasets/*/trueclass_240x240_sortbyclass_actual2_folds/groups/*/*/*.png
+
 /datasets/*/trueclass_240x240_sortbyclass_full/*/*.png
 /datasets/*/trueclass_240x240_subsorted/*/*/*.png
 
+/.vs
 
-# exclude
+# exclude local inputs
 
 sample_inputs.txt
