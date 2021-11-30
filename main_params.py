@@ -54,16 +54,16 @@ label_names = [
     'transport'
 ]
 
-#---
+#--- ----- CNN Training
 
-### model interation parameters
+### model interaction parameters
 
 SEED = 727                                          # consistent randomization from a set seed
 
 NUM_CLASSES = 6
 FOLDS = 5
 
-EPOCHS = 3                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
+EPOCHS = 5                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
 BATCH_SIZE = 16                                     # power of 2 for optimized CPU/GPU usage
 LEARNING_RATE = 0.01                                # decimal power of 10
 
@@ -102,11 +102,11 @@ TRAIN_SAMPLES_PER_CLASS = 400
 TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS * NUM_CLASSES
 TRAIN_STEPS_PER_EPOCH = TRAIN_SIZE // BATCH_SIZE    # floor division
 
+CALLBACK_MIN_DELTA = 0
+CALLBACK_PATIENCE = 2
 
+#--- ----- CNN Testing
 
-#---
-
-# once all models are observed manually, u
 CHOSEN_FOLD = 1
 
 # test set
@@ -121,6 +121,12 @@ TEST_SAMPLES_PER_CLASS = 1
 TEST_SIZE = TEST_SAMPLES_PER_CLASS * NUM_CLASSES
 TEST_STEPS_PER_EPOCH = TEST_SIZE // BATCH_SIZE      # floor division
 
+#---
+
+TRAINED_MODELS_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'models'
+)
 
 #---
 
@@ -133,3 +139,42 @@ LOSS = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=False)      # S
 EVALUATION_METRICS = [
     'accuracy'
 ]
+
+### model creation
+
+def create_model():
+    model = tf.keras.models.Sequential()
+
+    # initialize model architecture parameters
+    model.add(tf.keras.layers.Conv2D(
+        64, (9, 9),
+        activation=ACTIVATION,
+        input_shape=(img_HEIGHT, img_WIDTH, 3)
+    ))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+
+    # continue applying convolutional layers while occasionally doing pooling
+    model.add(tf.keras.layers.Conv2D(32, (7, 7), activation=ACTIVATION) )
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    model.add(tf.keras.layers.Conv2D(32, (5, 5), activation=ACTIVATION) )
+    model.add(tf.keras.layers.MaxPooling2D((3, 3)))
+    model.add(tf.keras.layers.Conv2D(16, (5, 5), activation=ACTIVATION))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+    
+    # flatten CNN model to a single array of values
+    model.add(tf.keras.layers.Flatten())
+    model.add(tf.keras.layers.Dense(64, activation=ACTIVATION))
+
+    # final layer corresponds to the total number of classes for classifying into
+    model.add(tf.keras.layers.Dense(NUM_CLASSES))
+
+    # compile model using specified tools and metrics
+    #print('--- FOLD ' + str(f+1) + ' of ' + str(FOLDS) + ' - model.compile() ---')
+    model.compile(
+        optimizer=OPTIMIZER,
+        loss=LOSS,
+        metrics=EVALUATION_METRICS
+    )
+    tf.keras.backend.set_value(model.optimizer.learning_rate, LEARNING_RATE)
+
+    return model
