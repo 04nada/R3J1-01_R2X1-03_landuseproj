@@ -12,6 +12,7 @@
 /datasets/*/trueclass_240x240_subsorted/*/*/*.png
 
 /.vs
+/__pycache__
 
 # exclude local inputs
 
