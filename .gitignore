@@ -8,8 +8,14 @@
 /datasets/*/trueclass_240x240_sortbyclass_actual2_folds/folds/*/*/*/*.png
 /datasets/*/trueclass_240x240_sortbyclass_actual2_folds/groups/*/*/*.png
 
+/datasets/*/trueclass_240x240_sortbyclass_actual_folds/folds_small/*/*/*/*.png
+/datasets/*/trueclass_240x240_sortbyclass_actual_folds/folds_small/*/*/*/*.png
+/datasets/mnist_png/*/*/*.png
+
 /datasets/*/trueclass_240x240_sortbyclass_full/*/*.png
 /datasets/*/trueclass_240x240_subsorted/*/*/*.png
+
+/datasets/mnist_png/*/*/*.png
 
 /.vs
 /__pycache__
