@@ -77,7 +77,7 @@ class ReGenerator:
 import random
 from PIL import Image
 
-def generate_rgb_image_from_path(image_filepath:str) -> 'matrix':
+def generate_rgb_image_from_path(image_filepath:str) -> 'tensor':
     # read image file data as a matrix of RGB pixels
     image = Image.open(image_filepath).convert('RGB')
     image_matrix = np.array(image)
@@ -288,7 +288,7 @@ def plot_test_graphs(number_of_epochs:int,
 
 # standalone KFold implementation
 # values determined by the 'random' package
-def random_index_partition(num_groups, num_elements):
+def random_index_partition(num_groups:int, num_elements:int) -> list:
     indices = []
     
     unused_indices = [i for i in range(num_elements)]
@@ -312,3 +312,28 @@ def random_index_partition(num_groups, num_elements):
         unused_indices = unused_indices[current_num_elements:]
 
     return indices
+
+# --- ----- Model Testing
+
+# get array of model's probability predictions of an image belonging to each of its classes
+def get_image_predictions(model, image_matrix:'tensor'):
+    # https://datascience.stackexchange.com/questions/13461/how-can-i-get-prediction-for-only-one-instance-in-keras
+    # this line places the image inside a parent array for model.predict() to work
+    sample_data = np.array([image_matrix])
+    predictions = model.predict(sample_data)
+    
+    return predictions[0]
+
+# get a model's specific class (index) that an image has the highest probability of falling under
+def predict_image(model, image_matrix:'tensor'):
+    predictions = get_image_predictions(model, image_matrix)
+
+    max_val = predictions[0]
+    max_index = 0
+    
+    for i,pred in enumerate(predictions):
+        if pred > max_val:
+            max_val = pred
+            max_index = i
+
+    return max_index
