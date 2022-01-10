@@ -1,5 +1,6 @@
 import tensorflow as tf
 import tensorflow_addons as tfa
+import tf_metrics
 from pathlib import Path
 
 ROOT_DIRECTORY = Path.cwd()
@@ -8,50 +9,20 @@ ROOT_DIRECTORY = Path.cwd()
 
 ### image parameters
 
-img_COLORMAP_HEIGHT = 20
-img_COLORMAP_WIDTH = 20
-
-img_HEIGHT = 32
-img_WIDTH = 32
-
-lookup_rgb_to_index_full = {
-    (97,64,31): 0,	    # agricultural - brown - #61401F
-    (160,32,239): 1,	    # commercial - purple - #A020EF
-    (0,0,254): 2,           # harbor_seawater - blue - #0000FE
-    (221,190,170): 3,       # industrial - beige - #DDBEAA
-    (237,0,0): 4,   	    # institutional - red - #ED0000
-    (45,137,86): 5,	    # recreational - green - #2D8956
-    (254,165,0): 6,	    # residential - yellow - #FEA500
-    (0,0,87): 7	            # transport - dark blue - #000057
-}
-
-lookup_rgb_to_index = {
-    (160,32,239): 0,	    # commercial - purple - #A020EF
-    (221,190,170): 1,       # industrial - beige - #DDBEAA
-    (237,0,0): 2,   	    # institutional - red - #ED0000
-    (45,137,86): 3,	    # recreational - green - #2D8956
-    (254,165,0): 4,	    # residential - yellow - #FEA500
-    (0,0,87): 5		    # transport - dark blue - #000057
-}
-
-label_names_full = [
-    'agricultural',
-    'commercial',
-    'harbor_seawater',
-    'industrial',
-    'institutional',
-    'recreational',
-    'residential',
-    'transport'
-]
+img_HEIGHT = 28
+img_WIDTH = 28
 
 label_names = [
-    'commercial',
-    'industrial',
-    'institutional',
-    'recreational',
-    'residential',
-    'transport'
+    '0',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9'
 ]
 
 #--- ----- CNN Training
@@ -60,10 +31,10 @@ label_names = [
 
 SEED = 727                                          # consistent randomization from a set seed
 
-NUM_CLASSES = 6
+NUM_CLASSES = 10
 FOLDS = 5
 
-EPOCHS = 10                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
+EPOCHS = 1                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
 BATCH_SIZE = 16                                     # power of 2 for optimized CPU/GPU usage
 LEARNING_RATE = 0.01                                # decimal power of 10
 
@@ -71,38 +42,12 @@ LEARNING_RATE = 0.01                                # decimal power of 10
 TRAIN_DATASET_DIRECTORY = str(
     ROOT_DIRECTORY
     / 'datasets'
-    / 'train_images'
-    / 'trueclass_240x240_sortbyclass_actual'
+    / 'mnist_png'
+    / 'training'
 )
-TRAIN_DATASET_DIRECTORIES = [
-    str(
-        ROOT_DIRECTORY
-        / 'datasets'
-        / 'train_images'
-        / 'trueclass_240x240_sortbyclass_actual_folds'
-        / 'folds'
-        / ('fold'+str(i+1))
-    )
-    for i in range(FOLDS)
-]
-
-TRAIN_DATASET_DIRECTORIES2 = [
-    str(
-        ROOT_DIRECTORY
-        / 'datasets'
-        / 'train_images'
-        / 'trueclass_240x240_sortbyclass_actual2_folds'
-        / 'folds'
-        / ('fold'+str(i+1))
-    )
-    for i in range(FOLDS)
-]
-
-TRAIN_SAMPLES_PER_CLASS = 400
-TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS * NUM_CLASSES
 
 CALLBACK_MIN_DELTA = 0
-CALLBACK_PATIENCE = 1
+CALLBACK_PATIENCE = 2
 
 #--- ----- CNN Testing
 
@@ -112,8 +57,8 @@ CHOSEN_FOLD = 1
 TEST_DATASET_DIRECTORY = str(
     ROOT_DIRECTORY
     / 'datasets'
-    / 'test_images'
-    / 'trueclass_240x240_sortbyclass_actual'
+    / 'mnist_png'
+    / 'testing'
 )
 
 #---
@@ -125,6 +70,29 @@ TRAINED_MODELS_DIRECTORY = str(
 
 #---
 
+### custom metrics
+
+class CategoricalTruePositives(tf.keras.metrics.Metric):
+    def __init__(self, name="categorical_true_positives", **kwargs):
+        super(CategoricalTruePositives, self).__init__(name=name, **kwargs)
+        self.true_positives = self.add_weight(name="ctp", initializer="zeros")
+
+    def update_state(self, y_true, y_pred, sample_weight=None):
+        y_pred = tf.reshape(tf.argmax(y_pred, axis=1), shape=(-1, 1))
+        values = tf.cast(y_true, "int32") == tf.cast(y_pred, "int32")
+        values = tf.cast(values, "float32")
+        if sample_weight is not None:
+            sample_weight = tf.cast(sample_weight, "float32")
+            values = tf.multiply(values, sample_weight)
+        self.true_positives.assign_add(tf.reduce_sum(values))
+
+    def result(self):
+        return self.true_positives
+
+    def reset_state(self):
+        # The state of the metric will be reset at the start of each epoch.
+        self.true_positives.assign(0.0)
+
 ### model implementation parameters
 
 ACTIVATION = 'relu'
@@ -134,7 +102,10 @@ OPTIMIZER = tf.keras.optimizers.SGD(                                       # Sto
 )
 LOSS = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)      # Sparse Categorical Cross-Entropy
 EVALUATION_METRICS = [
-    'accuracy'
+    'accuracy',
+    tf.keras.metrics.SparseCategoricalAccuracy(),
+    CategoricalTruePositives()
+#    tf_metrics.recall()
 ]
 
 ### model creation
@@ -173,3 +144,21 @@ def create_model():
     tf.keras.backend.set_value(model.optimizer.learning_rate, LEARNING_RATE)
 
     return model
+
+class CustomCallback(tf.keras.callbacks.Callback):
+    def __init__(self):
+        super(CollectOutputAndTarget, self).__init__()
+        self.targets = []  # collect y_true batches
+        self.outputs = []  # collect y_pred batches
+
+        # the shape of these 2 variables will change according to batch shape
+        # to handle the "last batch", specify `validate_shape=False`
+        self.var_y_true = tf.Variable(0., validate_shape=False)
+        self.var_y_pred = tf.Variable(0., validate_shape=False)
+
+    def on_batch_end(self, batch, logs=None):
+        # evaluate the variables and save them into lists
+        self.targets.append(K.eval(self.var_y_true))
+        self.outputs.append(K.eval(self.var_y_pred))
+
+

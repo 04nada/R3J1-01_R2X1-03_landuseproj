@@ -1,4 +1,4 @@
-import main_params as mp
+import main_params3 as mp
 import model_functions as model_funcs
 
 import tensorflow as tf
@@ -12,7 +12,7 @@ from pathlib import Path
 # --- ----
 
 models = [sub_file for sub_file in Path(mp.TRAINED_MODELS_DIRECTORY).iterdir() if sub_file.is_file()]
-chosen_model = models[14]
+chosen_model = models[4]
 
 # ---
 
@@ -62,7 +62,13 @@ test_model.summary()
 ##    # ---
 ##    
 
-results = test_model.evaluate(
-    test_dataset,
-    verbose=2
+a = model_funcs.generate_rgb_image_from_path(
+    Path(mp.TRAIN_DATASET_DIRECTORY)
+    / '0'
+    / '1.png'
 )
+
+##results = test_model.evaluate(
+##    test_dataset,
+##    verbose=2
+##)

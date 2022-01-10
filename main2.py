@@ -17,31 +17,6 @@ tf.random.set_seed(mp.SEED)
 np.random.seed(mp.SEED)
 random.seed(mp.SEED)
 
-
-# ---
-
-### Training + Validation Sets, using Fold folders
-
-train_datasets = [
-    tf.keras.preprocessing.image_dataset_from_directory(
-        str(Path(mp.TRAIN_DATASET_DIRECTORIES2[f]) / 'training'),
-        image_size = (mp.img_HEIGHT, mp.img_WIDTH),
-        batch_size = mp.BATCH_SIZE
-    ).prefetch(
-        buffer_size = tf.data.experimental.AUTOTUNE
-    ) for f in range(mp.FOLDS)
-]
-
-val_datasets = [
-    tf.keras.preprocessing.image_dataset_from_directory(
-        str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'validation'),
-        image_size = (mp.img_HEIGHT, mp.img_WIDTH),
-        batch_size = mp.BATCH_SIZE
-    ).prefetch(
-        buffer_size = tf.data.experimental.AUTOTUNE
-    ) for f in range(mp.FOLDS)
-]
-
 # --- -----
 
 ### CNN Training
@@ -49,26 +24,52 @@ val_datasets = [
 models = []
 histories = []
 
-for f in range(mp.FOLDS):
+for f in range(mp.FOLDS):  
     # first check if CHOSEN_FOLD is set to a specific acceptable value
     #     (otherwise, set CHOSEN_FOLD to -1)
 
-##    # if CHOSEN_FOLD is not -1, then only train a model for that specific fold,
-##    #     and skip all other folds in training
-##    
-##    if mp.CHOSEN_FOLD > 0:
-##        if f+1 == mp.CHOSEN_FOLD:
-##            print('\n=== CHOSEN: FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
-##        else:
-##            continue
-##    else:
-##        print('\n=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
-##    
-##    # ---
-##    
-##    # only do training data augmentation here, so it will happen FOLDSx total
-##    # in order to augment training data but not the validation data, per fold
-##    # https://stats.stackexchange.com/questions/482787/how-to-do-data-augmentation-and-cross-validation-at-the-same-time
+    # if CHOSEN_FOLD is not -1, then only train a model for that specific fold,
+    #     and skip all other folds in training
+    
+    if mp.CHOSEN_FOLD is not None:
+        if f+1 == mp.CHOSEN_FOLD:
+            print('\n=== CHOSEN: FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
+        else:
+            continue
+    else:
+        print('\n=== FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - start ===')
+    
+    # ---
+   
+    # Training + Validation Sets, using Fold folders
+
+    current_train_dataset = tf.keras.preprocessing.image_dataset_from_directory(
+        str(Path(mp.TRAIN_DATASET_DIRECTORIES2[f]) / 'training'),
+        shuffle = True,
+    
+        labels = "inferred",
+        label_mode = "int",
+        class_names = mp.label_names,
+
+        image_size = (mp.img_HEIGHT, mp.img_WIDTH),
+        batch_size = mp.BATCH_SIZE
+    ).prefetch(
+        buffer_size = tf.data.experimental.AUTOTUNE
+    )
+
+    current_val_dataset = tf.keras.preprocessing.image_dataset_from_directory(
+        str(Path(mp.TRAIN_DATASET_DIRECTORIES2[f]) / 'validation'),
+        shuffle = True,
+    
+        labels = "inferred",
+        label_mode = "int",
+        class_names = mp.label_names,
+
+        image_size = (mp.img_HEIGHT, mp.img_WIDTH),
+        batch_size = mp.BATCH_SIZE
+    ).prefetch(
+        buffer_size = tf.data.experimental.AUTOTUNE
+    )
 
     # ---
 
@@ -79,8 +80,8 @@ for f in range(mp.FOLDS):
 
     print('--- FOLD ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - model.fit() ---')
     history = model.fit(
-        train_datasets[f],
-        validation_data = val_datasets[f],
+        current_train_dataset,
+        validation_data = current_val_dataset,
         shuffle = True,
         
         epochs = mp.EPOCHS,
@@ -89,8 +90,8 @@ for f in range(mp.FOLDS):
         callbacks = [
             tf.keras.callbacks.ModelCheckpoint(
                 filepath = str(
-                    Path(mp.TRAIN_CHECKPOINTS_DIRECTORY)
-                    / ('model' + str(f).zfill(2) + '_{epoch:02d}.hdf5')
+                    Path(mp.TRAINED_MODELS_DIRECTORY)
+                    / ('model_small' + str(f).zfill(2) + '_{epoch:02d}.hdf5')
                 ),
                 save_weights_only = True,
                 save_best_only = True,
@@ -105,7 +106,7 @@ for f in range(mp.FOLDS):
             tf.keras.callbacks.History()
         ],
         
-        verbose = 1
+        verbose = 2
     )
 
     accuracy = history.history['accuracy']
