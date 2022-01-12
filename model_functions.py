@@ -3,6 +3,7 @@ import numpy as np
 
 #--- ----- Logging
 
+# print function that can be enabled/disabled via parameter
 def t_print(text:str, toggle:bool) -> None:
     if toggle:
         print(text)
@@ -77,6 +78,7 @@ class ReGenerator:
 import random
 from PIL import Image
 
+# load the numpy array of an image from its filepath
 def generate_rgb_image_from_path(image_filepath:str) -> 'tensor':
     # read image file data as a matrix of RGB pixels
     image = Image.open(image_filepath).convert('RGB')
@@ -84,6 +86,7 @@ def generate_rgb_image_from_path(image_filepath:str) -> 'tensor':
 
     return image_matrix
 
+# find the size of a dataset
 def get_dataset_size(dataset_dirpath:str):
     dataset_dir_path = Path(dataset_dirpath)
 
@@ -99,6 +102,8 @@ def get_dataset_size(dataset_dirpath:str):
 def dataset_generator(dataset_dirpath:str, label_names:list,
 *, normalize:bool=False, n=None, log_progress:bool=True) -> 'generator':
     t_print('=== Yield Dataset: from Directory - start ===', log_progress)
+
+    num_classes = len(label_names)
     
     # get dataset directory as Path object
     dataset_dir_path = Path(dataset_dirpath)
@@ -108,7 +113,7 @@ def dataset_generator(dataset_dirpath:str, label_names:list,
     class_dir_paths = (i for i in dataset_dir_path.iterdir() if i.is_dir())
     
     for c_d_p,class_dir_path in enumerate(class_dir_paths):
-        t_print('--- CD_D: ' + class_dir_path.name + ' - ' + str(c_d_p) + ' of ' + str(len(label_names)) + ' classes finished ---', log_progress)
+        t_print('--- CD_D: ' + class_dir_path.name + ' - ' + str(c_d_p) + ' of ' + str(num_classes) + ' classes finished ---', log_progress)
 
         # get label number of current dataclass path
         class_name = class_dir_path.name
@@ -120,7 +125,7 @@ def dataset_generator(dataset_dirpath:str, label_names:list,
         
         yield from yield_datapoints_rgb(class_dirpath, label_number, normalize=normalize, n=n)
 
-    t_print('--- CD_D: ' + str(len(label_names)) + ' of ' + str(len(label_names)) + ' classes finished---', log_progress)
+    t_print('--- CD_D: ' + str(num_classes) + ' of ' + str(num_classes) + ' classes finished ---', log_progress)
 
     t_print('=== Yield Dataset: from Directory - finish ===', log_progress)
 
@@ -337,3 +342,154 @@ def predict_image(model, image_matrix:'tensor'):
             max_index = i
 
     return max_index
+
+def generate_confusion_matrix(model, dataset_dirpath:str, label_names:list,
+*, log_progress:bool=True) -> 'matrix':
+    t_print('=== Generate Confusion Matrix - start ===', log_progress)
+
+    confusion_matrix = []
+    num_classes = len(label_names)
+    print(label_names)
+    
+    for r in range(num_classes):
+        row = []
+        
+        for c in range(num_classes):
+            row.append(0)
+
+        confusion_matrix.append(row)
+
+    # ---
+
+    dataset_dir_path = Path(dataset_dirpath)
+    class_dir_paths = (i for i in dataset_dir_path.iterdir() if i.is_dir())
+
+    images = (sub_path for sub_path in class_dir_paths if sub_path.is_file() and sub_path.suffix in VALID_IMAGE_EXTENSIONS)
+
+    for c_d_p,class_dir_path in enumerate(class_dir_paths):
+        t_print('--- GCM: \'' + class_dir_path.name + '\' - ' + str(c_d_p) + ' of ' + str(num_classes) + ' classes finished ---', log_progress)
+        
+        actual_label_name = class_dir_path.name
+        actual_label_index = label_names.index(actual_label_name)
+
+        image_file_paths = (i for i in class_dir_path.iterdir() if i.is_file() and i.suffix in VALID_IMAGE_EXTENSIONS)
+
+        for image_file_path in image_file_paths:
+            image_filepath = str(image_file_path)
+            
+            predicted_label_index = predict_image(
+                model,
+                generate_rgb_image_from_path(image_filepath)
+            )
+
+            confusion_matrix[actual_label_index][predicted_label_index] += 1
+
+    t_print('--- GCM: ' + str(num_classes) + ' of ' + str(num_classes) + ' classes finished ---', log_progress)
+        
+    return confusion_matrix
+
+# --- Confusion Matrix parts
+
+def get_true_positives(confusion_matrix, label_index):
+    return confusion_matrix[label_index][label_index]
+
+def get_false_positives(confusion_matrix, label_index):
+    positive_predictions = sum(confusion_matrix[label_index])
+
+    return positive_predictions - get_true_positives(confusion_matrix, label_index)
+
+def get_false_negatives(confusion_matrix, label_index):
+    negative_predictions = sum([row[label_index] for row in confusion_matrix])
+
+    return negative_predictions - get_true_positives(confusion_matrix, label_index)
+
+def get_true_negatives(confusion_matrix, label_index):
+    dataset_size = 0
+
+    for row in confusion_matrix:
+        dataset_size += sum(row)
+
+    return dataset_size - get_false_positives(label_index) - get_false_negatives(label_index) + get_true_positives(confusion_matrix, label_index)
+
+# --- Evaluation Metrics
+
+def get_macro_accuracy1(confusion_matrix):
+    num_classes = len(confusion_matrix)
+
+    accuracies = []
+
+    for i in range(num_classes):
+        TP = get_true_positives(confusion_matrix, i)
+        FP = get_false_positives(confusion_matrix, i)
+        FN = get_false_negatives(confusion_matrix, i)
+
+        class_accuracy = TP/(TP+FP+FN)
+
+        accuracies.append(class_accuracy)
+
+    return sum(accuracies)/num_classes
+
+def get_macro_accuracy2(confusion_matrix):
+    num_classes = len(confusion_matrix)
+
+    accuracies = []
+
+    for i in range(num_classes):
+        TP = get_true_positives(confusion_matrix, i)
+        FP = get_false_positives(confusion_matrix, i)
+        FN = get_false_negatives(confusion_matrix, i)
+        TN = get_true_negatives(confusion_matrix, i)
+
+        class_accuracy = (TP+TN)/(TP+FP+FN+TN)
+
+        accuracies.append(class_accuracy)
+
+    return sum(accuracies)/num_classes
+
+def get_macro_precision(confusion_matrix):
+    num_classes = len(confusion_matrix)
+
+    precisions = []
+
+    for i in range(num_classes):
+        TP = get_true_positives(confusion_matrix, i)
+        FP = get_false_positives(confusion_matrix, i)
+
+        class_precision = TP/(TP+FP)
+
+        precisions.append(class_precision)
+
+    return sum(precisions)/num_classes
+
+def get_macro_recall(confusion_matrix):
+    num_classes = len(confusion_matrix)
+
+    recalls = []
+
+    for i in range(num_classes):
+        TP = get_true_positives(confusion_matrix, i)
+        FN = get_false_negatives(confusion_matrix, i)
+
+        class_recall = TP/(TP+FN)
+
+        recalls.append(class_recall)
+
+    return sum(recalls)/num_classes
+
+def get_macro_F1(confusion_matrix):
+    num_classes = len(confusion_matrix)
+
+    F1s = []
+
+    for i in range(num_classes):
+        TP = get_true_positives(confusion_matrix, i)
+        FP = get_false_positives(confusion_matrix, i)
+        FN = get_false_negatives(confusion_matrix, i)
+
+        class_precision = TP/(TP+FP)
+        class_recall = TP/(TP+FN)
+
+        class_F1 = 2/(1/class_precision + 1/class_recall)
+        F1s.append(class_F1)
+
+    return sum(F1s)/num_classes
