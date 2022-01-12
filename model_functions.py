@@ -1,6 +1,10 @@
 import tensorflow as tf
 import numpy as np
 
+#--- -----
+
+EPSILON = 1e-50
+
 #--- ----- Logging
 
 # print function that can be enabled/disabled via parameter
@@ -423,7 +427,7 @@ def get_macro_accuracy1(confusion_matrix):
         FP = get_false_positives(confusion_matrix, i)
         FN = get_false_negatives(confusion_matrix, i)
 
-        class_accuracy = TP/(TP+FP+FN)
+        class_accuracy = (TP + EPSILON)/(TP+FP+FN + EPSILON)
 
         accuracies.append(class_accuracy)
 
@@ -440,7 +444,7 @@ def get_macro_accuracy2(confusion_matrix):
         FN = get_false_negatives(confusion_matrix, i)
         TN = get_true_negatives(confusion_matrix, i)
 
-        class_accuracy = (TP+TN)/(TP+FP+FN+TN)
+        class_accuracy = (TP+TN + EPSILON)/(TP+FP+FN+TN + EPSILON)
 
         accuracies.append(class_accuracy)
 
@@ -448,6 +452,7 @@ def get_macro_accuracy2(confusion_matrix):
 
 def get_macro_precision(confusion_matrix):
     num_classes = len(confusion_matrix)
+    EPSILON = 1e-50
 
     precisions = []
 
@@ -455,7 +460,7 @@ def get_macro_precision(confusion_matrix):
         TP = get_true_positives(confusion_matrix, i)
         FP = get_false_positives(confusion_matrix, i)
 
-        class_precision = TP/(TP+FP)
+        class_precision = (TP + EPSILON)/(TP+FP + EPSILON)
 
         precisions.append(class_precision)
 
@@ -470,7 +475,7 @@ def get_macro_recall(confusion_matrix):
         TP = get_true_positives(confusion_matrix, i)
         FN = get_false_negatives(confusion_matrix, i)
 
-        class_recall = TP/(TP+FN)
+        class_recall = (TP + EPSILON)/(TP+FN + EPSILON)
 
         recalls.append(class_recall)
 
@@ -486,10 +491,10 @@ def get_macro_F1(confusion_matrix):
         FP = get_false_positives(confusion_matrix, i)
         FN = get_false_negatives(confusion_matrix, i)
 
-        class_precision = TP/(TP+FP)
-        class_recall = TP/(TP+FN)
+        class_precision = (TP + EPSILON)/(TP+FP + EPSILON)
+        class_recall = (TP + EPSILON)/(TP+FN + EPSILON)
 
-        class_F1 = 2/(1/class_precision + 1/class_recall)
+        class_F1 = 2/(1/(class_precision + EPSILON) + 1/(class_recall + EPSILON))
         F1s.append(class_F1)
 
     return sum(F1s)/num_classes
