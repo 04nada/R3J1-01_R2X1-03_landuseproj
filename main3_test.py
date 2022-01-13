@@ -12,7 +12,7 @@ from pathlib import Path
 # --- ----
 
 models = [sub_file for sub_file in Path(mp.TRAINED_MODELS_DIRECTORY).iterdir() if sub_file.is_file()]
-chosen_model = models[4]
+chosen_model = models[0]
 
 # ---
 
@@ -66,6 +66,12 @@ a = model_funcs.generate_rgb_image_from_path(
     Path(mp.TRAIN_DATASET_DIRECTORY)
     / '0'
     / '1.png'
+)
+
+confusion_matrix = model_funcs.generate_confusion_matrix(
+    test_model,
+    mp.TRAIN_DATASET_DIRECTORY,
+    mp.label_names
 )
 
 ##results = test_model.evaluate(
