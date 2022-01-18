@@ -91,7 +91,7 @@ for f in range(mp.FOLDS):
             tf.keras.callbacks.ModelCheckpoint(
                 filepath = str(
                     Path(mp.TRAINED_MODELS_DIRECTORY)
-                    / ('model_small' + str(f).zfill(2) + '_{epoch:02d}.hdf5')
+                    / ('model_small__fold' + str(f+1).zfill(2) + '__epoch{epoch:02d}.hdf5')
                 ),
                 save_weights_only = True,
                 save_best_only = True,
