@@ -11,8 +11,8 @@ ROOT_DIRECTORY = Path.cwd()
 img_COLORMAP_HEIGHT = 20
 img_COLORMAP_WIDTH = 20
 
-img_HEIGHT = 32
-img_WIDTH = 32
+img_HEIGHT = 240
+img_WIDTH = 240
 
 lookup_rgb_to_index_full = {
     (97,64,31): 0,	    # agricultural - brown - #61401F
@@ -98,9 +98,6 @@ TRAIN_DATASET_DIRECTORIES2 = [
     for i in range(FOLDS)
 ]
 
-TRAIN_SAMPLES_PER_CLASS = 400
-TRAIN_SIZE = TRAIN_SAMPLES_PER_CLASS * NUM_CLASSES
-
 CALLBACK_MIN_DELTA = 0
 CALLBACK_PATIENCE = 1
 
@@ -113,7 +110,7 @@ TEST_DATASET_DIRECTORY = str(
     ROOT_DIRECTORY
     / 'datasets'
     / 'test_images'
-    / 'trueclass_240x240_sortbyclass_actual'
+    / 'trueclass_240x240_sortbyclass_actual2'
 )
 
 #---
@@ -155,7 +152,9 @@ def create_model():
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
     model.add(tf.keras.layers.Conv2D(16, (3, 3), activation=ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    
+    model.add(tf.keras.layers.Conv2D(16, (2, 2), activation=ACTIVATION))
+    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
+   
     # flatten CNN model to a single array of values
     model.add(tf.keras.layers.Flatten())
     model.add(tf.keras.layers.Dense(64, activation=ACTIVATION))
