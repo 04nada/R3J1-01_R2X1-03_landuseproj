@@ -413,7 +413,7 @@ def get_true_negatives(confusion_matrix, label_index):
     for row in confusion_matrix:
         dataset_size += sum(row)
 
-    return dataset_size - get_false_positives(label_index) - get_false_negatives(label_index) + get_true_positives(confusion_matrix, label_index)
+    return dataset_size - get_false_positives(confusion_matrix, label_index) - get_false_negatives(confusion_matrix, label_index) + get_true_positives(confusion_matrix, label_index)
 
 # --- Evaluation Metrics
 
