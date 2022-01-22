@@ -74,8 +74,8 @@ results = test_model.evaluate(
     verbose=2
 )
 
-confusion_matrix = model_funcs.generate_confusion_matrix(
-    test_model,
-    mp.TRAIN_DATASET_DIRECTORY,
-    mp.label_names
-)
+##confusion_matrix = model_funcs.generate_confusion_matrix(
+##    test_model,
+##    mp.TRAIN_DATASET_DIRECTORY,
+##    mp.label_names
+##)
