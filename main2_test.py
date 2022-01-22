@@ -8,6 +8,7 @@ import random
 import numpy as np
 
 from pathlib import Path
+import pickle
 
 # --- ----
 
@@ -44,38 +45,44 @@ test_model.load_weights(chosen_model)
 
 test_model.summary()
 
-### Test Set
-
-##if mp.CHOSEN_FOLD > 0:
-##    test_datapoints_regen = model_funcs.ReGenerator(
-##        model_funcs.dataset_generator,
-##        (mp.TEST_DATASET_DIRECTORY.__str__(),
-##            mp.label_names),
-##        {'normalize': True,
-##            'n': None}
-##    )
-##
-##    test_images = model_funcs.ReGenerator(
-##        lambda : (point[0] for point in test_datapoints_regen.gen())
-##    )
-##
-##    test_labels = model_funcs.ReGenerator(
-##        lambda : (point[1] for point in test_datapoints_regen.gen())
-##    )
-##
-##    test_images_array = np.array([image for image in test_images.gen()])
-##    test_labels_array = np.array([label for label in test_labels.gen()])
-##
-##    # ---
-##    
+# ---
 
 results = test_model.evaluate(
     test_dataset,
     verbose=2
 )
 
-##confusion_matrix = model_funcs.generate_confusion_matrix(
+results_filename = str(Path(chosen_model).stem).replace('history', 'results')
+pickle.dump(results, open(
+    str(Path(mp.TESTING_RESULTS_DIRECTORY)
+        / (str(Path(chosen_model).stem) + '__results.obj')
+    ), 'wb')
+)
+
+# ---
+
+train_confusion_matrix = model_funcs.generate_confusion_matrix(
+    test_model,
+    mp.TRAIN_DATASET_DIRECTORY,
+    mp.label_names,
+    size = (mp.img_WIDTH, mp.img_HEIGHT)
+)
+pickle.dump(train_confusion_matrix, open(
+    str(Path(mp.TESTING_RESULTS_DIRECTORY)
+        / (str(Path(chosen_model).stem) + '__train_confusion_matrix.obj')
+    ), 'wb')
+)
+
+# ---
+
+##test_confusion_matrix = model_funcs.generate_confusion_matrix(
 ##    test_model,
-##    mp.TRAIN_DATASET_DIRECTORY,
-##    mp.label_names
+##    mp.TEST_DATASET_DIRECTORY,
+##    mp.label_names,
+##    size = (mp.img_WIDTH, mp.img_HEIGHT)
+##)
+##pickle.dump(test_confusion_matrix, open(
+##    str(Path(mp.TESTING_RESULTS_DIRECTORY)
+##        / (str(Path(chosen_model).stem) + '__test_confusion_matrix.obj')
+##    ), 'wb')
 ##)

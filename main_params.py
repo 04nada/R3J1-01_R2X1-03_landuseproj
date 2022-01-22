@@ -125,6 +125,11 @@ TRAINING_HISTORIES_DIRECTORY = str(
     / 'histories'
 )
 
+TESTING_RESULTS_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'results'
+)
+
 #---
 
 ### model implementation parameters
