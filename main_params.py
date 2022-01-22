@@ -11,8 +11,8 @@ ROOT_DIRECTORY = Path.cwd()
 img_COLORMAP_HEIGHT = 20
 img_COLORMAP_WIDTH = 20
 
-img_HEIGHT = 240
-img_WIDTH = 240
+img_HEIGHT = 32
+img_WIDTH = 32
 
 lookup_rgb_to_index_full = {
     (97,64,31): 0,	    # agricultural - brown - #61401F
@@ -63,7 +63,7 @@ SEED = 727                                          # consistent randomization f
 NUM_CLASSES = 6
 FOLDS = 5
 
-EPOCHS = 10                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
+EPOCHS = 15                                          # filler number, just has to be more than enough to overfit before reaching the final epoch
 BATCH_SIZE = 16                                     # power of 2 for optimized CPU/GPU usage
 LEARNING_RATE = 0.01                                # decimal power of 10
 
@@ -99,11 +99,11 @@ TRAIN_DATASET_DIRECTORIES2 = [
 ]
 
 CALLBACK_MIN_DELTA = 0
-CALLBACK_PATIENCE = 1
+CALLBACK_PATIENCE = 2
 
 #--- ----- CNN Testing
 
-CHOSEN_FOLD = 1
+CHOSEN_FOLD = None
 
 # test set
 TEST_DATASET_DIRECTORY = str(
@@ -118,6 +118,11 @@ TEST_DATASET_DIRECTORY = str(
 TRAINED_MODELS_DIRECTORY = str(
     ROOT_DIRECTORY
     / 'models'
+)
+
+TRAINING_HISTORIES_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'histories'
 )
 
 #---
@@ -139,6 +144,7 @@ EVALUATION_METRICS = [
 def create_model():
     model = tf.keras.models.Sequential()
 
+
     # initialize model architecture parameters
     model.add(tf.keras.layers.Conv2D(
         32, (3, 3),
@@ -148,11 +154,10 @@ def create_model():
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
     # continue applying convolutional layers while occasionally doing pooling
+
     model.add(tf.keras.layers.Conv2D(32, (3, 3), activation=ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
     model.add(tf.keras.layers.Conv2D(16, (3, 3), activation=ACTIVATION))
-    model.add(tf.keras.layers.MaxPooling2D((2, 2)))
-    model.add(tf.keras.layers.Conv2D(16, (2, 2), activation=ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
    
     # flatten CNN model to a single array of values
