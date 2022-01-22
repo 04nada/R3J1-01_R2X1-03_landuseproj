@@ -83,9 +83,13 @@ import random
 from PIL import Image
 
 # load the numpy array of an image from its filepath
-def generate_rgb_image_from_path(image_filepath:str) -> 'tensor':
+def generate_rgb_image_from_path(image_filepath:str,
+*, size:tuple=None) -> 'tensor':
     # read image file data as a matrix of RGB pixels
     image = Image.open(image_filepath).convert('RGB')
+    if size is not None:
+        image = image.resize(size)
+    
     image_matrix = np.array(image)
 
     return image_matrix
@@ -166,25 +170,6 @@ def yield_datapoints_rgb(image_dirpath:str, label_number:int,
         # ---
         
         yield (image, label_number)
-
-#---
-
-##define dataAugmentation:
-##    let x be a random number from [0,1]
-##    if > 0.5:
-##        flip the image
-##    else:
-##        rotate the image by a random degree
-##
-
-def augment_data(image:list, mask:list):
-    if tf.random.uniform(()) > 0.5:
-        input_image = tf.image.flip_left_right(image)
-        input_mask = tf.image.flip_left_right(mask)
-        pass
-
-    # todo : clarify if do all 4 rotations from 0 to 270?
-    # still needs fixing with regards to actually increasing the number of images
 
 #--- ----- Model Graphs
 
@@ -324,11 +309,13 @@ def random_index_partition(num_groups:int, num_elements:int) -> list:
 
 # --- ----- Model Testing
 
+import time
+
 # get array of model's probability predictions of an image belonging to each of its classes
 def get_image_predictions(model, image_matrix:'tensor'):
     # https://datascience.stackexchange.com/questions/13461/how-can-i-get-prediction-for-only-one-instance-in-keras
     # this line places the image inside a parent array for model.predict() to work
-    sample_data = np.array([image_matrix])
+    sample_data = np.array([image_matrix,])
     predictions = model.predict(sample_data)
     
     return predictions[0]
@@ -348,9 +335,10 @@ def predict_image(model, image_matrix:'tensor'):
     return max_index
 
 def generate_confusion_matrix(model, dataset_dirpath:str, label_names:list,
-*, log_progress:bool=True) -> 'matrix':
+*, size:tuple=None, log_progress:bool=True) -> 'matrix':
     t_print('=== Generate Confusion Matrix - start ===', log_progress)
-
+    start_time = time.time()
+    
     confusion_matrix = []
     num_classes = len(label_names)
     print(label_names)
@@ -383,12 +371,19 @@ def generate_confusion_matrix(model, dataset_dirpath:str, label_names:list,
             
             predicted_label_index = predict_image(
                 model,
-                generate_rgb_image_from_path(image_filepath)
+                generate_rgb_image_from_path(
+                    image_filepath,   
+                    size=size
+                ),
             )
 
             confusion_matrix[actual_label_index][predicted_label_index] += 1
 
     t_print('--- GCM: ' + str(num_classes) + ' of ' + str(num_classes) + ' classes finished ---', log_progress)
+
+    end_time = time.time()
+    t_print('--- Time elapsed: ' + str(end_time - start_time) + 's ---')
+    t_print('=== Generate Confusion Matrix - finish ===', log_progress)
         
     return confusion_matrix
 
