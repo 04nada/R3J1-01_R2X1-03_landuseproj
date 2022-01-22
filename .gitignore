@@ -17,8 +17,7 @@
 
 /datasets/mnist_png/*/*/*.png
 
-/.vs
-/__pycache__
+/__pycache__/*
 
 # exclude local inputs
 
