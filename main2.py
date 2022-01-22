@@ -6,6 +6,7 @@ import tensorflow_addons as tfa
 from matplotlib import pyplot as plt
 import random
 import numpy as np
+import pickle
 
 from pathlib import Path
 
@@ -24,7 +25,7 @@ random.seed(mp.SEED)
 models = []
 histories = []
 
-for f in range(mp.FOLDS):  
+for f in range(mp.FOLDS):
     # first check if CHOSEN_FOLD is set to a specific acceptable value
     #     (otherwise, set CHOSEN_FOLD to -1)
 
@@ -91,7 +92,7 @@ for f in range(mp.FOLDS):
             tf.keras.callbacks.ModelCheckpoint(
                 filepath = str(
                     Path(mp.TRAINED_MODELS_DIRECTORY)
-                    / ('model_small__fold' + str(f+1).zfill(2) + '__epoch{epoch:02d}.hdf5')
+                    / ('model__fold' + str(f+1).zfill(2) + '__epoch{epoch:02d}.hdf5')
                 ),
                 save_weights_only = True,
                 save_best_only = True,
@@ -114,24 +115,28 @@ for f in range(mp.FOLDS):
 
     actual_num_epochs = len(loss)
 
-    model_funcs.plot_training_graphs(
-        actual_num_epochs,
-        train_accuracy = accuracy,
-        train_loss = loss
-    )
+##    model_funcs.plot_training_graphs(
+##        actual_num_epochs,
+##        train_accuracy = accuracy,
+##        train_loss = loss
+##    )
 
     # ---
 
     models.append(model)
     histories.append(history.history)
-    
-    break
+
+    pickle.dump(history.history, open(
+        str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
+            / ('model__fold' + str(f+1).zfill(2) + '__history.obj')
+        ), 'wb')
+    )
 
     # ---
 
     # check for which end-of-fold message to print
     
-    if mp.CHOSEN_FOLD > 0:
+    if mp.CHOSEN_FOLD is not None:
         print('=== CHOSEN FOLD: Fold ' + str(f+1) + ' of ' + str(mp.FOLDS) + ' - end ===')
         break
     else:
