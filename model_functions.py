@@ -382,7 +382,7 @@ def generate_confusion_matrix(model, dataset_dirpath:str, label_names:list,
     t_print('--- GCM: ' + str(num_classes) + ' of ' + str(num_classes) + ' classes finished ---', log_progress)
 
     end_time = time.time()
-    t_print('--- Time elapsed: ' + str(end_time - start_time) + 's ---')
+    t_print('--- Time elapsed: ' + str(end_time - start_time) + 's ---', log_progress)
     t_print('=== Generate Confusion Matrix - finish ===', log_progress)
         
     return confusion_matrix
