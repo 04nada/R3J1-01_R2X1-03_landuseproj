@@ -1,4 +1,5 @@
 import main_params as mp
+import model_functions as model_funcs
 
 from pathlib import Path
 import pickle
@@ -14,24 +15,24 @@ folds_epochs = [
 for f,epochs in folds_epochs:
     confusion_matrices = pickle.load(open(
         str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
-                / ('model__fold' + str(f).zfill(2)
-                    + '__train_confusion_matrices.obj')
+            / ('model__fold' + str(f).zfill(2)
+                + '__train_confusion_matrices.obj')
         ), 'rb')
     )
 
     history = pickle.load(open(
         str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
-                / ('model__fold' + str(f).zfill(2)
-                    + '__history.obj')
+            / ('model__fold' + str(f).zfill(2)
+                + '__history.obj')
         ), 'rb')
     )
 
     # ---
     
     metric_dict = {
-        'accuracy': []
-        'precision': []
-        'recall': []
+        'accuracy': [],
+        'precision': [],
+        'recall': [],
         'F1score': [] 
     }
 
@@ -51,3 +52,19 @@ for f,epochs in folds_epochs:
         metric_dict['F1score'].append(
             model_funcs.get_macro_F1(confusion_matrix)
         )
+
+    pickle.dump(metric_dict, open(
+        str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
+            / ('model__fold' + str(f).zfill(2)
+                + '__training_metrics.obj')
+        ), 'wb')
+    )
+
+    model_funcs.plot_training_graphs(
+        epochs,
+        train_accuracy = metric_dict['accuracy'],
+        train_precision = metric_dict['precision'],
+        train_recall = metric_dict['recall'],
+        train_F1score = metric_dict['F1score']
+    )
+    
