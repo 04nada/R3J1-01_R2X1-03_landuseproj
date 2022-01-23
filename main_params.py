@@ -72,21 +72,9 @@ TRAIN_DATASET_DIRECTORY = str(
     ROOT_DIRECTORY
     / 'datasets'
     / 'train_images'
-    / 'trueclass_240x240_sortbyclass_actual'
+    / 'trueclass_240x240_sortbyclass_actual2'
 )
 TRAIN_DATASET_DIRECTORIES = [
-    str(
-        ROOT_DIRECTORY
-        / 'datasets'
-        / 'train_images'
-        / 'trueclass_240x240_sortbyclass_actual_folds'
-        / 'folds'
-        / ('fold'+str(i+1))
-    )
-    for i in range(FOLDS)
-]
-
-TRAIN_DATASET_DIRECTORIES2 = [
     str(
         ROOT_DIRECTORY
         / 'datasets'
