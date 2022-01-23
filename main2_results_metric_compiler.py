@@ -13,13 +13,20 @@ folds_epochs = [
 ]
 
 for f,epochs in folds_epochs:
-    confusion_matrices = pickle.load(open(
+    train_confusion_matrices = pickle.load(open(
         str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
             / ('model__fold' + str(f).zfill(2)
                 + '__train_confusion_matrices.obj')
         ), 'rb')
     )
 
+    val_confusion_matrices = pickle.load(open(
+        str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
+            / ('model__fold' + str(f).zfill(2)
+                + '__train_confusion_matrices.obj')
+        ), 'rb')
+    )
+    
     history = pickle.load(open(
         str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
             / ('model__fold' + str(f).zfill(2)
