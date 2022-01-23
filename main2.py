@@ -26,6 +26,8 @@ models = []
 histories = []
 
 for f in range(mp.FOLDS):
+    if f<2:
+        continue
     # first check if CHOSEN_FOLD is set to a specific acceptable value
     #     (otherwise, set CHOSEN_FOLD to -1)
 
@@ -95,7 +97,7 @@ for f in range(mp.FOLDS):
                     / ('model__fold' + str(f+1).zfill(2) + '__epoch{epoch:02d}.hdf5')
                 ),
                 save_weights_only = True,
-                save_best_only = True,
+                save_best_only = False,
                 verbose = 1
             ),
             tf.keras.callbacks.EarlyStopping(

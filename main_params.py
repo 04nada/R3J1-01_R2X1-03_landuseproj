@@ -103,7 +103,7 @@ CALLBACK_PATIENCE = 2
 
 #--- ----- CNN Testing
 
-CHOSEN_FOLD = None
+CHOSEN_FOLD = 5
 
 # test set
 TEST_DATASET_DIRECTORY = str(

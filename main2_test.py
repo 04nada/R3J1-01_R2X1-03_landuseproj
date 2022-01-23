@@ -12,7 +12,11 @@ import pickle
 
 # --- ----
 
-model_file_paths = [sub_file for sub_file in Path(mp.TRAINED_MODELS_DIRECTORY).iterdir() if sub_file.is_file() and sub_file.suffix == '.hdf5']
+models_dir_path = Path(mp.TRAINED_MODELS_DIRECTORY)
+
+# ---
+
+model_file_paths = [sub_file for sub_file in models_dir_path.iterdir() if sub_file.is_file() and sub_file.suffix == '.hdf5']
 number_of_models = len(model_file_paths)
 
 print('Detected ' + str(number_of_models) + ' models in directory:')
@@ -20,6 +24,9 @@ for i,model_file_path in enumerate(model_file_paths):
     print('(' + str(i) + ') ' + str(model_file_path))
 
 model_index = int(input('\nWhich model will be evaluated? [0-' + str(number_of_models - 1) + ']: '))
+
+# ---
+
 chosen_model = model_file_paths[model_index]
 
 # ---
@@ -27,11 +34,11 @@ chosen_model = model_file_paths[model_index]
 test_dataset = tf.keras.preprocessing.image_dataset_from_directory(
     mp.TRAIN_DATASET_DIRECTORY,
     shuffle = True,
-    
+            
     labels = "inferred",
     label_mode = "int",
     class_names = mp.label_names,
-    
+     
     image_size = (mp.img_HEIGHT, mp.img_WIDTH),
     batch_size = mp.BATCH_SIZE
 ).prefetch(
@@ -68,7 +75,7 @@ train_confusion_matrix = model_funcs.generate_confusion_matrix(
     size = (mp.img_WIDTH, mp.img_HEIGHT)
 )
 pickle.dump(train_confusion_matrix, open(
-    str(Path(mp.TESTING_RESULTS_DIRECTORY)
+    str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
         / (str(Path(chosen_model).stem) + '__train_confusion_matrix.obj')
     ), 'wb')
 )
