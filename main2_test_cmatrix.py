@@ -29,24 +29,6 @@ model_index = int(input('\nWhich model will be evaluated? [0-' + str(number_of_m
 
 chosen_model = model_file_paths[model_index]
 
-# ---
-
-test_dataset = tf.keras.preprocessing.image_dataset_from_directory(
-    mp.TEST_DATASET_DIRECTORY,
-    shuffle = True,
-            
-    labels = "inferred",
-    label_mode = "int",
-    class_names = mp.label_names,
-     
-    image_size = (mp.img_HEIGHT, mp.img_WIDTH),
-    batch_size = mp.BATCH_SIZE
-).prefetch(
-    buffer_size = tf.data.experimental.AUTOTUNE
-)
-
-# ---
-
 test_model = mp.create_model()
 test_model.load_weights(chosen_model)
 
@@ -54,13 +36,14 @@ test_model.summary()
 
 # ---
 
-results = test_model.evaluate(
-    test_dataset,
-    verbose=2
+test_confusion_matrix = model_funcs.generate_confusion_matrix(
+    test_model,
+    mp.TEST_DATASET_DIRECTORY,
+    mp.label_names,
+    size = (mp.img_WIDTH, mp.img_HEIGHT)
 )
-
-pickle.dump(results, open(
+pickle.dump(test_confusion_matrix, open(
     str(Path(mp.TESTING_RESULTS_DIRECTORY)
-        / (str(Path(chosen_model).stem) + '__results.obj')
+        / (str(Path(chosen_model).stem) + '__test_confusion_matrix.obj')
     ), 'wb')
 )
