@@ -387,28 +387,46 @@ def generate_confusion_matrix(model, dataset_dirpath:str, label_names:list,
         
     return confusion_matrix
 
+def normalize_confusion_matrix(confusion_matrix):
+    normalized_confusion_matrix = []
+
+    for row in confusion_matrix:
+        normalized_row = []
+        
+        actual_positives = sum(row)
+
+        for cell in row:
+            normalized_row.append(cell/actual_positives)
+
+        normalized_confusion_matrix.append(normalized_row)
+
+    return normalized_confusion_matrix
+        
 # --- Confusion Matrix parts
 
-def get_true_positives(confusion_matrix, label_index):
-    return confusion_matrix[label_index][label_index]
-
-def get_false_positives(confusion_matrix, label_index):
-    positive_predictions = sum(confusion_matrix[label_index])
-
-    return positive_predictions - get_true_positives(confusion_matrix, label_index)
-
-def get_false_negatives(confusion_matrix, label_index):
-    negative_predictions = sum([row[label_index] for row in confusion_matrix])
-
-    return negative_predictions - get_true_positives(confusion_matrix, label_index)
-
-def get_true_negatives(confusion_matrix, label_index):
+def get_confusion_matrix_size(confusion_matrix):
     dataset_size = 0
 
     for row in confusion_matrix:
         dataset_size += sum(row)
 
-    return dataset_size - get_false_positives(confusion_matrix, label_index) - get_false_negatives(confusion_matrix, label_index) + get_true_positives(confusion_matrix, label_index)
+    return dataset_size
+
+def get_true_positives(confusion_matrix, label_index):
+    return confusion_matrix[label_index][label_index]
+
+def get_false_positives(confusion_matrix, label_index):
+    positive_predictions = sum([row[label_index] for row in confusion_matrix])
+
+    return positive_predictions - get_true_positives(confusion_matrix, label_index)
+
+def get_false_negatives(confusion_matrix, label_index):
+    actual_positives = sum(confusion_matrix[label_index])
+
+    return actual_positives - get_true_positives(confusion_matrix, label_index)
+  
+def get_true_negatives(confusion_matrix, label_index):
+    return get_confusion_matrix_size(confusion_matrix) - get_false_positives(confusion_matrix, label_index) - get_false_negatives(confusion_matrix, label_index) - get_true_positives(confusion_matrix, label_index)
 
 # --- Evaluation Metrics
 
