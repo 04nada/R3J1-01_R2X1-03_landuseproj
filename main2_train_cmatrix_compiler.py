@@ -35,7 +35,7 @@ for f,epochs in folds_epochs:
         )
         
         train_confusion_matrices.append(train_confusion_matrix)
-        val_confusion_matrix.append(val_confusion_matrix)
+        val_confusion_matrices.append(val_confusion_matrix)
 
     pickle.dump(train_confusion_matrices, open(
         str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
