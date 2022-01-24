@@ -137,7 +137,6 @@ EVALUATION_METRICS = [
 def create_model():
     model = tf.keras.models.Sequential()
 
-
     # initialize model architecture parameters
     model.add(tf.keras.layers.Conv2D(
         32, (3, 3),
@@ -147,7 +146,6 @@ def create_model():
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
 
     # continue applying convolutional layers while occasionally doing pooling
-
     model.add(tf.keras.layers.Conv2D(32, (3, 3), activation=ACTIVATION))
     model.add(tf.keras.layers.MaxPooling2D((2, 2)))
     model.add(tf.keras.layers.Conv2D(16, (3, 3), activation=ACTIVATION))
@@ -161,7 +159,6 @@ def create_model():
     model.add(tf.keras.layers.Dense(NUM_CLASSES, activation="sigmoid"))
 
     # compile model using specified tools and metrics
-    #print('--- FOLD ' + str(f+1) + ' of ' + str(FOLDS) + ' - model.compile() ---')
     model.compile(
         optimizer=OPTIMIZER,
         loss=LOSS,
