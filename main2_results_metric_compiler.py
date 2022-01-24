@@ -38,47 +38,28 @@ for f,epochs in folds_epochs:
     
     metric_dict = {
         'accuracy': [],
-        'val_accuracy': [],
-        
         'precision': [],
-        'val_precision': [],
-        
         'recall': [],
-        'val_recall': [],
-        
-        'F1score': [],
-        'val_F1score': []
+        'F1score': [] 
     }
 
-    for train_confusion_matrix, val_confusion_matrix in zip(train_confusion_matrices, val_confusion_matrices):
+    for confusion_matrix in confusion_matrices:
         metric_dict['accuracy'].append(
-            model_funcs.get_macro_accuracy1(train_confusion_matrix)
+            model_funcs.get_macro_accuracy1(confusion_matrix)
         )
-        metric_dict['val_accuracy'].append(
-            model_funcs.get_macro_accuracy1(val_confusion_matrix)
-        )
-        
+
         metric_dict['precision'].append(
-            model_funcs.get_macro_precision(train_confusion_matrix)
+            model_funcs.get_macro_precision(confusion_matrix)
         )
-        metric_dict['val_precision'].append(
-            model_funcs.get_macro_precision(val_confusion_matrix)
-        )
-        
+
         metric_dict['recall'].append(
-            model_funcs.get_macro_recall(train_confusion_matrix)
+            model_funcs.get_macro_recall(confusion_matrix)
         )
-        metric_dict['val_recall'].append(
-            model_funcs.get_macro_recall(val_confusion_matrix)
-        )
-        
+
         metric_dict['F1score'].append(
-            model_funcs.get_macro_F1(train_confusion_matrix)
+            model_funcs.get_macro_F1(confusion_matrix)
         )
-        metric_dict['val_F1score'].append(
-            model_funcs.get_macro_F1(val_confusion_matrix)
-        )
-        
+
     pickle.dump(metric_dict, open(
         str(Path(mp.TRAINING_HISTORIES_DIRECTORY)
             / ('model__fold' + str(f).zfill(2)
@@ -91,8 +72,6 @@ for f,epochs in folds_epochs:
         train_accuracy = metric_dict['accuracy'],
         train_precision = metric_dict['precision'],
         train_recall = metric_dict['recall'],
-        val_accuracy = metric_dict['val_accuracy'],
-        val_precision = metric_dict['val_precision'],
-        val_recall = metric_dict['val_recall']
+        train_F1score = metric_dict['F1score']
     )
     
