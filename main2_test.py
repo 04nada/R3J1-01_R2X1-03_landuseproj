@@ -35,7 +35,7 @@ a = [5, 6, 7, 8, 9, 10,
      51, 52, 53, 54, 55, 56, 57, 58, 59, 60]
 
 for model_index in a:
-    chosen_model = model_file_paths[model_index+5]
+    chosen_model = model_file_paths[model_index]
 
     # ---
 
@@ -76,9 +76,11 @@ for model_index in a:
 
     # ---
 
+    fold = int(results_filename[results_filename.find('fold')+4:results_filename.find('fold')+6])
+
     train_confusion_matrix = model_funcs.generate_confusion_matrix(
         test_model,
-        str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'training'),
+        str(Path(mp.TRAIN_DATASET_DIRECTORIES[fold-1]) / 'training'),
         mp.label_names,
         size = (mp.img_WIDTH, mp.img_HEIGHT)
     )
@@ -92,7 +94,7 @@ for model_index in a:
 
     val_confusion_matrix = model_funcs.generate_confusion_matrix(
         test_model,
-        str(Path(mp.TRAIN_DATASET_DIRECTORIES[f]) / 'validation'),
+        str(Path(mp.TRAIN_DATASET_DIRECTORIES[fold-1]) / 'validation'),
         mp.label_names,
         size = (mp.img_WIDTH, mp.img_HEIGHT)
     )
