@@ -430,84 +430,95 @@ def get_true_negatives(confusion_matrix, label_index):
 
 # --- Evaluation Metrics
 
+def get_class_accuracy1(confusion_matrix, label_index):
+    TP = get_true_positives(confusion_matrix, label_index)
+    FP = get_false_positives(confusion_matrix, label_index)
+    FN = get_false_negatives(confusion_matrix, label_index)
+
+    accuracy1 = (TP + EPSILON)/(TP+FP+FN + EPSILON)             # 0/0 = 1
+
+    return accuracy1
+
 def get_macro_accuracy1(confusion_matrix):
     num_classes = len(confusion_matrix)
 
-    accuracies = []
-
-    for i in range(num_classes):
-        TP = get_true_positives(confusion_matrix, i)
-        FP = get_false_positives(confusion_matrix, i)
-        FN = get_false_negatives(confusion_matrix, i)
-
-        class_accuracy = (TP + EPSILON)/(TP+FP+FN + EPSILON)
-
-        accuracies.append(class_accuracy)
+    accuracies = [
+        get_class_accuracy1(confusion_matrix, i)
+        for i in range(num_classes)
+    ]
 
     return sum(accuracies)/num_classes
+
+def get_class_accuracy2(confusion_matrix, label_index):
+    TP = get_true_positives(confusion_matrix, label_index)
+    FP = get_false_positives(confusion_matrix, label_index)
+    FN = get_false_negatives(confusion_matrix, label_index)
+    TN = get_true_negatives(confusion_matrix, label_index)
+
+    accuracy2 = (TP+TN + EPSILON)/(TP+FP+FN+TN + EPSILON)       # 0/0 = 1
+
+    return accuracy2
 
 def get_macro_accuracy2(confusion_matrix):
     num_classes = len(confusion_matrix)
 
-    accuracies = []
-
-    for i in range(num_classes):
-        TP = get_true_positives(confusion_matrix, i)
-        FP = get_false_positives(confusion_matrix, i)
-        FN = get_false_negatives(confusion_matrix, i)
-        TN = get_true_negatives(confusion_matrix, i)
-
-        class_accuracy = (TP+TN + EPSILON)/(TP+FP+FN+TN + EPSILON)
-
-        accuracies.append(class_accuracy)
+    accuracies = [
+        get_class_accuracy2(confusion_matrix, i)
+        for i in range(num_classes)
+    ]
 
     return sum(accuracies)/num_classes
 
+def get_class_precision(confusion_matrix, label_index):
+    TP = get_true_positives(confusion_matrix, label_index)
+    FP = get_false_positives(confusion_matrix, label_index)
+
+    precision = (TP + EPSILON)/(TP+FP + EPSILON)                # 0/0 = 1
+
+    return precision
+
 def get_macro_precision(confusion_matrix):
     num_classes = len(confusion_matrix)
-    EPSILON = 1e-50
 
-    precisions = []
-
-    for i in range(num_classes):
-        TP = get_true_positives(confusion_matrix, i)
-        FP = get_false_positives(confusion_matrix, i)
-
-        class_precision = (TP + EPSILON)/(TP+FP + EPSILON)
-
-        precisions.append(class_precision)
+    precisions = [
+        get_class_precision(confusion_matrix, i)
+        for i in range(num_classes)
+    ]
 
     return sum(precisions)/num_classes
+
+def get_class_recall(confusion_matrix, label_index):
+    TP = get_true_positives(confusion_matrix, label_index)
+    FN = get_false_negatives(confusion_matrix, label_index)
+
+    recall = (TP + EPSILON)/(TP+FN + EPSILON)                   # 0/0 = 1
+
+    return recall
 
 def get_macro_recall(confusion_matrix):
     num_classes = len(confusion_matrix)
 
-    recalls = []
-
-    for i in range(num_classes):
-        TP = get_true_positives(confusion_matrix, i)
-        FN = get_false_negatives(confusion_matrix, i)
-
-        class_recall = (TP + EPSILON)/(TP+FN + EPSILON)
-
-        recalls.append(class_recall)
+    recalls = [
+        get_class_recall(confusion_matrix, i)
+        for i in range(num_classes)
+    ]
 
     return sum(recalls)/num_classes
+
+def get_class_F1(confusion_matrix, label_index):
+    precision = get_class_precision(confusion_matrix, label_index)
+    recall = get_class_recall(confusion_matrix, label_index)
+
+    F1 = 2/(1/(precision + EPSILON) + 1/(recall + EPSILON))
+        
+    return F1
 
 def get_macro_F1(confusion_matrix):
     num_classes = len(confusion_matrix)
 
-    F1s = []
-
-    for i in range(num_classes):
-        TP = get_true_positives(confusion_matrix, i)
-        FP = get_false_positives(confusion_matrix, i)
-        FN = get_false_negatives(confusion_matrix, i)
-
-        class_precision = (TP + EPSILON)/(TP+FP + EPSILON)
-        class_recall = (TP + EPSILON)/(TP+FN + EPSILON)
-
-        class_F1 = 2/(1/(class_precision + EPSILON) + 1/(class_recall + EPSILON))
-        F1s.append(class_F1)
+    F1s = [
+        get_class_F1(confusion_matrix, i)
+        for i in range(num_classes)
+    ]
 
     return sum(F1s)/num_classes
