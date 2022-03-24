@@ -68,12 +68,6 @@ BATCH_SIZE = 16                                     # power of 2 for optimized C
 LEARNING_RATE = 0.01                                # decimal power of 10
 
 # training set
-TRAIN_DATASET_DIRECTORY = str(
-    ROOT_DIRECTORY
-    / 'datasets'
-    / 'train_images'
-    / 'trueclass_240x240_sortbyclass_actual2'
-)
 TRAIN_DATASET_DIRECTORIES = [
     str(
         ROOT_DIRECTORY
@@ -89,6 +83,18 @@ TRAIN_DATASET_DIRECTORIES = [
 CALLBACK_MIN_DELTA = 0
 CALLBACK_PATIENCE = 2
 
+#---
+
+TRAIN_MODELS_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'models'
+)
+
+TRAIN_HISTORIES_DIRECTORY = str(
+    ROOT_DIRECTORY
+    / 'histories'
+)
+
 #--- ----- CNN Testing
 
 CHOSEN_FOLD = 5
@@ -103,17 +109,7 @@ TEST_DATASET_DIRECTORY = str(
 
 #---
 
-TRAINED_MODELS_DIRECTORY = str(
-    ROOT_DIRECTORY
-    / 'models'
-)
-
-TRAINING_HISTORIES_DIRECTORY = str(
-    ROOT_DIRECTORY
-    / 'histories'
-)
-
-TESTING_RESULTS_DIRECTORY = str(
+TEST_RESULTS_DIRECTORY = str(
     ROOT_DIRECTORY
     / 'results'
 )
